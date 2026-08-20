@@ -30,7 +30,7 @@ you could have told yourself.
 - **Resolve it** later as right or wrong, with a note on what actually happened.
 - **Calibration curve** — your stated confidence plotted against how often each confidence
   band actually turned out right. The gap between the two lines is your miscalibration.
-- **Pattern analysis** — a Claude pass over every resolved entry that looks for *why* the
+- **Pattern analysis** — a Gemini pass over every resolved entry that looks for *why* the
   gap is there: the phrases you reach for, the categories where certainty runs ahead of
   evidence, the situations where you don't check your thinking.
 
@@ -41,11 +41,13 @@ anything — it works on the reasoning text, which is the part statistics can't 
 
 ```bash
 npm install
-cp .env.example .env      # then add your ANTHROPIC_API_KEY
+cp .env.example .env      # then add your GEMINI_API_KEY
 npx prisma migrate dev    # creates the SQLite database
 npm run seed              # loads the demo journal
 npm run dev
 ```
+
+The key is free from [Google AI Studio](https://aistudio.google.com/apikey) — no credit card.
 
 Open http://localhost:3000.
 
@@ -54,17 +56,21 @@ so the dashboard has something to measure on first run. The entries are hand-wri
 carry a deliberate calibration pattern; the analysis pass has to actually find it. Click
 **Find my patterns** on the dashboard to run it.
 
-Without an `ANTHROPIC_API_KEY` everything works except the pattern analysis, which will
-tell you the key is missing rather than failing silently.
+Without a `GEMINI_API_KEY` everything works except the pattern analysis, which will tell
+you the key is missing rather than failing silently.
 
-A run costs roughly ten cents on the default model. If that matters, set
-`DOXA_MODEL="claude-haiku-4-5"` in `.env` for about a fifth the cost — the findings come
-out blunter, which is the tradeoff.
+Free-tier model availability moves around, so if the default model name is rejected:
+
+```bash
+npm run models   # lists what your key can actually reach
+```
+
+Then set `DOXA_MODEL` in `.env` to one of them. Flash-class models are the free ones.
 
 ### Shipping the analysis with the repo
 
-The analysis costs roughly ten cents a run, which is fine for you and awkward for anyone
-who just wants to look at the project. So a run can be captured and committed:
+Anyone browsing the project shouldn't need their own key just to see what it does, so a
+run can be captured and committed:
 
 ```bash
 npm run capture:analysis   # writes prisma/seed-analysis.json from your last run
@@ -76,4 +82,4 @@ are never hand-written, and if no run has been captured the panel stays empty an
 
 ## Stack
 
-Next.js (App Router) · TypeScript · Tailwind · Prisma + SQLite · Recharts · Claude API
+Next.js (App Router) · TypeScript · Tailwind · Prisma + SQLite · Recharts · Gemini API

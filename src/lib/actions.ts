@@ -55,8 +55,8 @@ export async function resolveEntry(formData: FormData) {
 export type AnalysisState = { error?: string };
 
 export async function runAnalysis(): Promise<AnalysisState> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return { error: "Set ANTHROPIC_API_KEY in .env to run the analysis." };
+  if (!process.env.GEMINI_API_KEY) {
+    return { error: "Set GEMINI_API_KEY in .env to run the analysis." };
   }
 
   try {

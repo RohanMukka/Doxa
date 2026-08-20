@@ -8,13 +8,14 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx --env-file=.env prisma/seed.ts",
-    "capture:analysis": "tsx --env-file=.env scripts/capture-analysis.ts"
+    "capture:analysis": "tsx --env-file=.env scripts/capture-analysis.ts",
+    "models": "tsx --env-file=.env scripts/list-models.ts"
   },
   "prisma": {
     "seed": "tsx --env-file=.env prisma/seed.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.120.0",
+    "@google/genai": "^2.18.0",
     "@prisma/client": "^6.19.3",
     "next": "16.3.1",
     "prisma": "^6.19.3",

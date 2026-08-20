@@ -18,7 +18,7 @@ async function main() {
 
   if (!latest) {
     console.error(
-      "No analysis found. Run one from the dashboard first (needs ANTHROPIC_API_KEY), then re-run this."
+      "No analysis found. Run one from the dashboard first (needs GEMINI_API_KEY), then re-run this."
     );
     process.exit(1);
   }

@@ -1,6 +1,5 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI, Type } from "@google/genai";
 import { z } from "zod";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { prisma } from "@/lib/prisma";
 import {
   accuracyFor,
@@ -11,26 +10,48 @@ import {
 } from "@/lib/calibration";
 
 const InsightSchema = z.object({
-  headline: z
-    .string()
-    .describe(
-      "The specific finding, stated as a claim about this person's reasoning. One sentence."
-    ),
-  evidence: z
-    .string()
-    .describe(
-      "The numbers and the quoted language from their own entries that support the headline. Two to three sentences."
-    ),
-  tryInstead: z
-    .string()
-    .describe("One concrete change to make on the next decision of this kind. One sentence."),
+  headline: z.string(),
+  evidence: z.string(),
+  tryInstead: z.string(),
 });
 
-const InsightsSchema = z.object({
-  insights: z.array(InsightSchema),
-});
+const InsightsSchema = z.object({ insights: z.array(InsightSchema) });
 
 export type Insight = z.infer<typeof InsightSchema>;
+
+// Mirrors InsightsSchema for the model. Property ordering is declared explicitly
+// because Gemini follows it when generating, and a mismatch against the order
+// described in the prompt tends to produce malformed output.
+const RESPONSE_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    insights: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          headline: {
+            type: Type.STRING,
+            description:
+              "The specific finding, stated as a claim about this person's reasoning. One sentence.",
+          },
+          evidence: {
+            type: Type.STRING,
+            description:
+              "The numbers and the quoted language from their own entries that support the headline. Two to three sentences.",
+          },
+          tryInstead: {
+            type: Type.STRING,
+            description: "One concrete change to make on the next decision of this kind. One sentence.",
+          },
+        },
+        required: ["headline", "evidence", "tryInstead"],
+        propertyOrdering: ["headline", "evidence", "tryInstead"],
+      },
+    },
+  },
+  required: ["insights"],
+};
 
 type EntryRow = ResolvedEntry & {
   decision: string;
@@ -55,8 +76,8 @@ GOOD: "Your certainty is highest exactly where you skip outside input. On the 11
 The difference: a GOOD finding names a measurable gap, quotes their actual language, and says something they would not have told themselves.
 
 Rules:
-- Quote real fragments from their entries. Never invent a quote.
-- Use the supplied statistics verbatim. Never estimate or recompute counts.
+- Every insight must cite at least one specific number from the supplied statistics AND quote at least one real fragment from their entries.
+- Never invent a quote. Never estimate or recompute counts.
 - If the data genuinely does not support a specific pattern, say so plainly in that insight rather than inventing one.
 - Address them as "you". No preamble, no hedging, no therapy voice.
 - Return exactly 3 insights, most striking first.`;
@@ -94,20 +115,23 @@ function buildUserPrompt(entries: EntryRow[]) {
   ].join("\n");
 
   const entryLines = entries
-    .map((e, i) => {
-      return [
+    .map((e, i) =>
+      [
         `[${i + 1}] ${e.decision}`,
         `    confidence: ${e.confidence}% · ${e.consultedOthers ? "talked it through" : "reasoned alone"} · ${e.category ?? "uncategorized"}`,
         `    reasoning: ${e.reasoning}`,
         `    outcome: ${e.outcome === "correct" ? "RIGHT" : "WRONG"}${e.resolutionNote ? ` — ${e.resolutionNote}` : ""}`,
-      ].join("\n");
-    })
+      ].join("\n")
+    )
     .join("\n\n");
 
   return `PRE-COMPUTED STATISTICS (use these exact numbers):\n${stats}\n\nENTRIES:\n\n${entryLines}`;
 }
 
 export async function generateAnalysis(): Promise<Insight[]> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY is not set.");
+
   const entries = (await prisma.entry.findMany({
     where: { status: "resolved" },
     orderBy: { createdAt: "asc" },
@@ -117,31 +141,34 @@ export async function generateAnalysis(): Promise<Insight[]> {
     throw new Error("Need at least 5 resolved decisions before the pattern analysis means anything.");
   }
 
-  const client = new Anthropic();
+  const ai = new GoogleGenAI({ apiKey });
 
-  const response = await client.messages.parse({
-    // Opus is the default because finding a non-obvious pattern in the reasoning
-    // text is the whole product. Override with DOXA_MODEL if credits are tight —
-    // claude-haiku-4-5 costs roughly a fifth as much per run.
-    model: process.env.DOXA_MODEL ?? "claude-opus-5",
-    max_tokens: 16000,
-    thinking: { type: "adaptive" },
-    system: SYSTEM,
-    messages: [{ role: "user", content: buildUserPrompt(entries) }],
-    output_config: { format: zodOutputFormat(InsightsSchema) },
+  const response = await ai.models.generateContent({
+    model: process.env.DOXA_MODEL ?? "gemini-2.5-flash",
+    contents: buildUserPrompt(entries),
+    config: {
+      systemInstruction: SYSTEM,
+      responseMimeType: "application/json",
+      responseSchema: RESPONSE_SCHEMA,
+    },
   });
 
-  const parsed = response.parsed_output;
-  if (!parsed) throw new Error("Could not parse the analysis response.");
+  const text = response.text;
+  if (!text) throw new Error("The model returned an empty response.");
+
+  const parsed = InsightsSchema.safeParse(JSON.parse(text));
+  if (!parsed.success) {
+    throw new Error("The model's response did not match the expected shape.");
+  }
 
   await prisma.analysis.create({
     data: {
-      insights: JSON.stringify(parsed.insights),
+      insights: JSON.stringify(parsed.data.insights),
       entriesAnalyzed: entries.length,
     },
   });
 
-  return parsed.insights;
+  return parsed.data.insights;
 }
 
 export async function getLatestAnalysis() {
