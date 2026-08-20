@@ -8,8 +8,11 @@ import { runAnalysis } from "@/lib/actions";
 import {
   accuracyFor,
   averageConfidence,
+  brierScore,
   calibrationCurve,
   calibrationGap,
+  expectedCalibrationError,
+  gapIsMeaningful,
   splitByConsultation,
 } from "@/lib/calibration";
 
@@ -42,6 +45,9 @@ export default async function DashboardPage() {
   const stated = averageConfidence(resolved);
   const actual = accuracyFor(resolved);
   const gap = calibrationGap(resolved);
+  const ece = expectedCalibrationError(resolved);
+  const brier = brierScore(resolved);
+  const solid = gapIsMeaningful(resolved);
   const { solo, consulted } = splitByConsultation(resolved);
 
   if (resolved.length === 0) {
@@ -78,30 +84,66 @@ export default async function DashboardPage() {
         <h1 className="mt-2 max-w-2xl text-3xl font-semibold leading-tight tracking-tight">
           {gap === null ? (
             "Not enough resolved decisions yet."
-          ) : overconfident ? (
-            <>
-              You were sure{" "}
-              <span className="tabular-nums" style={{ color: "var(--critical)" }}>
-                {gap} points
-              </span>{" "}
-              more often than you were right.
-            </>
+          ) : solid ? (
+            overconfident ? (
+              <>
+                You were sure{" "}
+                <span className="tabular-nums" style={{ color: "var(--critical)" }}>
+                  {gap} points
+                </span>{" "}
+                more often than you were right.
+              </>
+            ) : (
+              <>
+                You sell yourself short by{" "}
+                <span className="tabular-nums" style={{ color: "var(--accent)" }}>
+                  {Math.abs(gap)} points
+                </span>
+                .
+              </>
+            )
           ) : (
             <>
-              You sell yourself short by{" "}
-              <span className="tabular-nums" style={{ color: "var(--accent)" }}>
-                {Math.abs(gap)} points
+              Leaning{" "}
+              <span className="tabular-nums" style={{ color: "var(--ink)" }}>
+                {Math.abs(gap)} points {overconfident ? "overconfident" : "underconfident"}
               </span>
-              .
+              , but not yet past the noise.
             </>
           )}
         </h1>
-        <p className="mt-3 text-sm text-ink-secondary">
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-secondary">
           Across {resolved.length} resolved decisions you said you were{" "}
           <span className="tabular-nums">{stated}%</span> confident on average, and turned out
           right <span className="tabular-nums">{actual}%</span> of the time
           {openCount > 0 && ` · ${openCount} still open`}.
+          {!solid && (
+            <>
+              {" "}
+              At this sample size a gap that size is still inside what chance would produce,
+              so treat it as a hint rather than a verdict.
+            </>
+          )}
         </p>
+
+        <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3">
+          <div>
+            <dt className="text-xs text-ink-muted">Calibration error</dt>
+            <dd className="mt-0.5 text-lg font-semibold tabular-nums">{ece} pts</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-ink-muted">Brier score</dt>
+            <dd className="mt-0.5 text-lg font-semibold tabular-nums">{brier}</dd>
+          </div>
+          <div className="max-w-xs">
+            <dt className="text-xs text-ink-muted">What those mean</dt>
+            <dd className="mt-0.5 text-xs leading-relaxed text-ink-secondary">
+              Calibration error ignores which direction you err in, so being over and under
+              can&rsquo;t cancel out. Brier rewards being right and punishes being confidently
+              wrong — 0.25 is what you&rsquo;d score by saying 50% to everything.
+            </dd>
+          </div>
+        </dl>
       </header>
 
       <InsightsPanel
@@ -132,12 +174,14 @@ export default async function DashboardPage() {
                   stated: averageConfidence(solo),
                   actual: accuracyFor(solo),
                   count: solo.length,
+                  brier: brierScore(solo),
                 },
                 {
                   label: "Talked it through",
                   stated: averageConfidence(consulted),
                   actual: accuracyFor(consulted),
                   count: consulted.length,
+                  brier: brierScore(consulted),
                 },
               ]}
             />

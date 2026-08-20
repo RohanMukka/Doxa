@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { resolveEntry } from "@/lib/actions";
+import { ResolveForm } from "@/components/resolve-form";
 
 export const dynamic = "force-dynamic";
 
@@ -108,53 +109,7 @@ export default async function JournalPage() {
                 trailing={`due ${formatDate(entry.resolutionDate)}`}
               />
 
-              <form
-                action={resolveEntry}
-                className="mt-4 flex flex-wrap items-end gap-3 border-t border-hairline pt-4"
-              >
-                <input type="hidden" name="id" value={entry.id} />
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor={`outcome-${entry.id}`}
-                    className="text-xs text-ink-muted"
-                  >
-                    How did it go?
-                  </label>
-                  <select
-                    id={`outcome-${entry.id}`}
-                    name="outcome"
-                    required
-                    defaultValue=""
-                    className="rounded-lg border border-hairline bg-page px-2.5 py-2 text-sm"
-                  >
-                    <option value="" disabled>
-                      Select…
-                    </option>
-                    <option value="correct">Turned out right</option>
-                    <option value="incorrect">Turned out wrong</option>
-                  </select>
-                </div>
-                <div className="flex min-w-[12rem] flex-1 flex-col gap-1.5">
-                  <label
-                    htmlFor={`note-${entry.id}`}
-                    className="text-xs text-ink-muted"
-                  >
-                    What actually happened? <span className="opacity-70">(optional)</span>
-                  </label>
-                  <input
-                    id={`note-${entry.id}`}
-                    type="text"
-                    name="resolutionNote"
-                    className="w-full rounded-lg border border-hairline bg-page px-2.5 py-2 text-sm"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-ink px-3.5 py-2 text-sm font-medium text-page transition-opacity hover:opacity-90"
-                >
-                  Resolve
-                </button>
-              </form>
+              <ResolveForm id={entry.id} action={resolveEntry} />
             </article>
           ))}
         </section>

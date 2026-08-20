@@ -3,6 +3,7 @@ type Group = {
   stated: number | null;
   actual: number | null;
   count: number;
+  brier: number | null;
 };
 
 /**
@@ -126,7 +127,10 @@ export function ConsultationSplit({ groups }: { groups: Group[] }) {
                 Right
               </th>
               <th scope="col" className="pb-1.5 text-right font-normal">
-                Decisions
+                Brier
+              </th>
+              <th scope="col" className="pb-1.5 text-right font-normal">
+                n
               </th>
             </tr>
           </thead>
@@ -138,11 +142,16 @@ export function ConsultationSplit({ groups }: { groups: Group[] }) {
                 </th>
                 <td className="py-0.5 text-right">{g.stated}%</td>
                 <td className="py-0.5 text-right">{g.actual}%</td>
+                <td className="py-0.5 text-right">{g.brier ?? "—"}</td>
                 <td className="py-0.5 text-right">{g.count}</td>
               </tr>
             ))}
           </tbody>
         </table>
+        <p className="mt-3 text-xs leading-relaxed text-ink-muted">
+          Lower Brier is better. The two groups are small, so read the direction of the
+          difference rather than the exact figures.
+        </p>
       </div>
     </div>
   );

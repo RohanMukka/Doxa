@@ -85,8 +85,8 @@ export function InsightsPanel({
       ) : (
         !state.error && (
           <p className="mt-5 text-sm leading-relaxed text-ink-muted">
-            Nothing read yet. The chart below shows that a gap exists; this works out why
-            it&rsquo;s there.
+            Nothing read yet. The numbers below say how far off you are; this reads the
+            reasoning itself to work out where it goes wrong.
           </p>
         )
       )}
