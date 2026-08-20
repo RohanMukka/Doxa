@@ -57,6 +57,19 @@ carry a deliberate calibration pattern; the analysis pass has to actually find i
 Without an `ANTHROPIC_API_KEY` everything works except the pattern analysis, which will
 tell you the key is missing rather than failing silently.
 
+### Shipping the analysis with the repo
+
+The analysis costs roughly ten cents a run, which is fine for you and awkward for anyone
+who just wants to look at the project. So a run can be captured and committed:
+
+```bash
+npm run capture:analysis   # writes prisma/seed-analysis.json from your last run
+```
+
+`npm run seed` picks that file up, so a fresh clone opens on a dashboard already showing
+model output with no key required. It replays a run that actually happened — the insights
+are never hand-written, and if no run has been captured the panel stays empty and says so.
+
 ## Stack
 
 Next.js (App Router) · TypeScript · Tailwind · Prisma + SQLite · Recharts · Claude API

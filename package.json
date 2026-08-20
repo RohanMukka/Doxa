@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "tsx --env-file=.env prisma/seed.ts"
+    "seed": "tsx --env-file=.env prisma/seed.ts",
+    "capture:analysis": "tsx --env-file=.env scripts/capture-analysis.ts"
   },
   "prisma": {
     "seed": "tsx --env-file=.env prisma/seed.ts"

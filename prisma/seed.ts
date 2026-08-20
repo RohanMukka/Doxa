@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { PrismaClient } from "../src/generated/prisma/client";
 
 const prisma = new PrismaClient();
@@ -578,6 +580,37 @@ async function main() {
   }
 
   console.log(`Seeded ${resolved.length} resolved entries and ${openEntries.length} open entries.`);
+
+  await seedCapturedAnalysis();
+}
+
+// If a previous real analysis run was captured (npm run capture:analysis), load
+// it so a fresh clone opens on a dashboard that already shows model output.
+// Nothing here fabricates insights — it only replays a run that actually happened.
+async function seedCapturedAnalysis() {
+  const file = path.join(process.cwd(), "prisma", "seed-analysis.json");
+
+  await prisma.analysis.deleteMany();
+
+  if (!fs.existsSync(file)) {
+    console.log("No captured analysis found — run one from the dashboard to fill that panel.");
+    return;
+  }
+
+  const captured = JSON.parse(fs.readFileSync(file, "utf8"));
+  if (!Array.isArray(captured.insights) || captured.insights.length === 0) {
+    console.log("Captured analysis file has no insights — skipping.");
+    return;
+  }
+
+  await prisma.analysis.create({
+    data: {
+      insights: JSON.stringify(captured.insights),
+      entriesAnalyzed: captured.entriesAnalyzed ?? (await prisma.entry.count({ where: { status: "resolved" } })),
+    },
+  });
+
+  console.log(`Loaded ${captured.insights.length} captured insights.`);
 }
 
 main()
