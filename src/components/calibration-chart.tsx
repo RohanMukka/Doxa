@@ -44,11 +44,11 @@ export function CalibrationChart({ buckets }: { buckets: CalibrationBucket[] }) 
               border: "1px solid rgba(127,127,127,0.3)",
               fontSize: 12,
             }}
-            formatter={(value: number, name: string) => [
+            formatter={(value, name) => [
               `${value}%`,
               name === "actual" ? "Actually right" : "You said",
             ]}
-            labelFormatter={(label: string) => {
+            labelFormatter={(label) => {
               const row = data.find((d) => d.label === label);
               return `${label} confidence · ${row?.count ?? 0} decisions`;
             }}

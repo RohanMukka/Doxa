@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { CalibrationChart } from "@/components/calibration-chart";
+import { InsightsPanel } from "@/components/insights-panel";
+import { getLatestAnalysis } from "@/lib/analysis";
+import { runAnalysis } from "@/lib/actions";
 import {
   accuracyFor,
   averageConfidence,
@@ -24,6 +27,7 @@ export default async function DashboardPage() {
   const resolved = await prisma.entry.findMany({ where: { status: "resolved" } });
   const openCount = await prisma.entry.count({ where: { status: "open" } });
 
+  const analysis = await getLatestAnalysis();
   const buckets = calibrationCurve(resolved);
   const stated = averageConfidence(resolved);
   const actual = accuracyFor(resolved);
@@ -48,6 +52,12 @@ export default async function DashboardPage() {
           sub={gap !== null && gap > 0 ? "overconfident" : "underconfident"}
         />
       </div>
+
+      <InsightsPanel
+        insights={analysis?.insights ?? null}
+        entriesAnalyzed={analysis?.entriesAnalyzed ?? null}
+        action={runAnalysis}
+      />
 
       <section className="rounded-lg border border-black/10 p-5 dark:border-white/10">
         <h2 className="text-sm font-medium">Confidence vs. reality</h2>

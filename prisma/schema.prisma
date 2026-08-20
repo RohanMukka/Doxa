@@ -8,6 +8,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Analysis {
+  id             String   @id @default(cuid())
+  insights       String // JSON array of { headline, evidence, tryInstead }
+  entriesAnalyzed Int
+  createdAt      DateTime @default(now())
+}
+
 model Entry {
   id             String   @id @default(cuid())
   decision       String

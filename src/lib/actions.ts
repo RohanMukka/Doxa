@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { generateAnalysis } from "@/lib/analysis";
 
 export async function createEntry(formData: FormData) {
   const decision = String(formData.get("decision") ?? "").trim();
@@ -49,4 +50,21 @@ export async function resolveEntry(formData: FormData) {
 
   revalidatePath("/journal");
   revalidatePath("/");
+}
+
+export type AnalysisState = { error?: string };
+
+export async function runAnalysis(): Promise<AnalysisState> {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return { error: "Set ANTHROPIC_API_KEY in .env to run the analysis." };
+  }
+
+  try {
+    await generateAnalysis();
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Analysis failed." };
+  }
+
+  revalidatePath("/");
+  return {};
 }
