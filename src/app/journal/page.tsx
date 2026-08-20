@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { resolveEntry } from "@/lib/actions";
 
@@ -84,6 +85,16 @@ export default async function JournalPage() {
         </section>
       )}
 
+      {entries.length === 0 && (
+        <p className="text-sm text-black/60 dark:text-white/60">
+          No entries yet.{" "}
+          <Link href="/journal/new" className="underline">
+            Write your first one.
+          </Link>
+        </p>
+      )}
+
+      {resolved.length > 0 && (
       <section className="space-y-4">
         <h2 className="text-sm font-medium uppercase tracking-wide text-black/50 dark:text-white/50">
           Resolved
@@ -125,6 +136,7 @@ export default async function JournalPage() {
           ))}
         </div>
       </section>
+      )}
     </div>
   );
 }

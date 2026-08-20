@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Doxa
 
-## Getting Started
+A decision journal that shows you where your confidence lies to you.
 
-First, run the development server:
+You log a decision *before* you know how it turns out — what you're deciding, your actual
+reasoning, and how confident you are. Later you record what happened. Once enough
+decisions have resolved, Doxa reads back across all of them and tells you where your
+certainty and your accuracy come apart.
+
+## Why
+
+Human memory rewrites itself. After the fact you remember having been more sure, or less,
+in whichever direction makes you look better. Decision journals exist because of that
+specific failure — investors and forecasters keep them for exactly this reason — but the
+tooling for them is mostly Notion templates.
+
+The interesting part isn't the journal. It's what becomes visible once a year of entries
+have resolved:
+
+> Your certainty is highest exactly where you skip outside input. On the decisions you
+> rated 85%+ and reasoned through alone, you were right 55% of the time; on the ones you
+> rated just as highly after talking them through, you were right 88%.
+
+That's a claim about *how you think*, not about any one decision — and it isn't something
+you could have told yourself.
+
+## What it does
+
+- **Log a decision** with your reasoning, a confidence percentage, and when you expect to know.
+- **Resolve it** later as right or wrong, with a note on what actually happened.
+- **Calibration curve** — your stated confidence plotted against how often each confidence
+  band actually turned out right. The gap between the two lines is your miscalibration.
+- **Pattern analysis** — a Claude pass over every resolved entry that looks for *why* the
+  gap is there: the phrases you reach for, the categories where certainty runs ahead of
+  evidence, the situations where you don't check your thinking.
+
+Accuracy statistics are computed in code and handed to the model, so it never has to count
+anything — it works on the reasoning text, which is the part statistics can't see.
+
+## Running it
 
 ```bash
+npm install
+cp .env.example .env      # then add your ANTHROPIC_API_KEY
+npx prisma migrate dev    # creates the SQLite database
+npm run seed              # loads the demo journal
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`npm run seed` loads a year of entries for a fictional user — 41 resolved, 3 still open —
+so the dashboard has something to measure on first run. The entries are hand-written and
+carry a deliberate calibration pattern; the analysis pass has to actually find it. Click
+**Find my patterns** on the dashboard to run it.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Without an `ANTHROPIC_API_KEY` everything works except the pattern analysis, which will
+tell you the key is missing rather than failing silently.
 
-## Learn More
+## Stack
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js (App Router) · TypeScript · Tailwind · Prisma + SQLite · Recharts · Claude API

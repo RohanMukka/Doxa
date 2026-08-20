@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { CalibrationChart } from "@/components/calibration-chart";
 import { InsightsPanel } from "@/components/insights-panel";
@@ -33,6 +34,29 @@ export default async function DashboardPage() {
   const actual = accuracyFor(resolved);
   const gap = calibrationGap(resolved);
   const { solo, consulted } = splitByConsultation(resolved);
+
+  if (resolved.length === 0) {
+    return (
+      <div className="max-w-lg space-y-4">
+        <h1 className="text-2xl font-semibold tracking-tight">Calibration</h1>
+        <p className="text-sm text-black/60 dark:text-white/60">
+          Nothing to measure yet. Log a few decisions with how confident you are, then come
+          back once you know how they turned out — the gap between the two is the whole point.
+        </p>
+        <Link
+          href="/journal/new"
+          className="inline-block rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+        >
+          Write your first entry
+        </Link>
+        {openCount > 0 && (
+          <p className="text-sm text-black/50 dark:text-white/50">
+            You have {openCount} {openCount === 1 ? "entry" : "entries"} waiting to be resolved.
+          </p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10">
