@@ -1,69 +1,74 @@
-import Image from "next/image";
+import { prisma } from "@/lib/prisma";
+import { CalibrationChart } from "@/components/calibration-chart";
+import {
+  accuracyFor,
+  averageConfidence,
+  calibrationCurve,
+  calibrationGap,
+  splitByConsultation,
+} from "@/lib/calibration";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="rounded-lg border border-black/10 p-4 dark:border-white/10">
+      <p className="text-xs uppercase tracking-wide text-black/50 dark:text-white/50">{label}</p>
+      <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
+      {sub && <p className="mt-1 text-xs text-black/50 dark:text-white/50">{sub}</p>}
+    </div>
+  );
+}
+
+export default async function DashboardPage() {
+  const resolved = await prisma.entry.findMany({ where: { status: "resolved" } });
+  const openCount = await prisma.entry.count({ where: { status: "open" } });
+
+  const buckets = calibrationCurve(resolved);
+  const stated = averageConfidence(resolved);
+  const actual = accuracyFor(resolved);
+  const gap = calibrationGap(resolved);
+  const { solo, consulted } = splitByConsultation(resolved);
+
+  return (
+    <div className="space-y-10">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Calibration</h1>
+        <p className="mt-1 text-sm text-black/60 dark:text-white/60">
+          {resolved.length} resolved decisions · {openCount} still open
+        </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Stat label="You said" value={stated !== null ? `${stated}%` : "—"} sub="average confidence" />
+        <Stat label="Actually right" value={actual !== null ? `${actual}%` : "—"} sub="across all resolved" />
+        <Stat
+          label="Gap"
+          value={gap !== null ? `${gap > 0 ? "+" : ""}${gap} pts` : "—"}
+          sub={gap !== null && gap > 0 ? "overconfident" : "underconfident"}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
+
+      <section className="rounded-lg border border-black/10 p-5 dark:border-white/10">
+        <h2 className="text-sm font-medium">Confidence vs. reality</h2>
+        <p className="mt-1 mb-4 text-xs text-black/50 dark:text-white/50">
+          Where the solid line sits below the dashed one, you were more sure than you should have been.
+        </p>
+        <CalibrationChart buckets={buckets} />
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2">
+        <Stat
+          label="Reasoned alone"
+          value={accuracyFor(solo) !== null ? `${accuracyFor(solo)}%` : "—"}
+          sub={`right, on ${averageConfidence(solo) ?? "—"}% average confidence · ${solo.length} decisions`}
+        />
+        <Stat
+          label="Talked it through"
+          value={accuracyFor(consulted) !== null ? `${accuracyFor(consulted)}%` : "—"}
+          sub={`right, on ${averageConfidence(consulted) ?? "—"}% average confidence · ${consulted.length} decisions`}
+        />
+      </section>
     </div>
   );
 }
