@@ -1,0 +1,23 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Entry {
+  id             String   @id @default(cuid())
+  decision       String
+  reasoning      String
+  confidence     Int
+  category       String?
+  consultedOthers Boolean @default(false)
+  createdAt      DateTime @default(now())
+  resolutionDate DateTime
+  status         String   @default("open") // "open" | "resolved"
+  outcome        String? // "correct" | "incorrect"
+  resolutionNote String?
+}
