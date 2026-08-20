@@ -57,6 +57,10 @@ carry a deliberate calibration pattern; the analysis pass has to actually find i
 Without an `ANTHROPIC_API_KEY` everything works except the pattern analysis, which will
 tell you the key is missing rather than failing silently.
 
+A run costs roughly ten cents on the default model. If that matters, set
+`DOXA_MODEL="claude-haiku-4-5"` in `.env` for about a fifth the cost — the findings come
+out blunter, which is the tradeoff.
+
 ### Shipping the analysis with the repo
 
 The analysis costs roughly ten cents a run, which is fine for you and awkward for anyone

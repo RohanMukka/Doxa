@@ -120,7 +120,10 @@ export async function generateAnalysis(): Promise<Insight[]> {
   const client = new Anthropic();
 
   const response = await client.messages.parse({
-    model: "claude-opus-5",
+    // Opus is the default because finding a non-obvious pattern in the reasoning
+    // text is the whole product. Override with DOXA_MODEL if credits are tight —
+    // claude-haiku-4-5 costs roughly a fifth as much per run.
+    model: process.env.DOXA_MODEL ?? "claude-opus-5",
     max_tokens: 16000,
     thinking: { type: "adaptive" },
     system: SYSTEM,
