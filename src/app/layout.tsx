@@ -25,28 +25,37 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <header className="border-b border-black/10 dark:border-white/10">
-          <nav className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-            <Link href="/" className="text-lg font-semibold tracking-tight">
-              Doxa
+        <header className="sticky top-0 z-10 border-b border-hairline bg-page/85 backdrop-blur">
+          <nav className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3.5">
+            <Link href="/" className="flex items-baseline gap-2.5">
+              <span className="text-base font-semibold tracking-tight">Doxa</span>
+              <span className="hidden text-xs text-ink-muted sm:inline">
+                where your confidence lies to you
+              </span>
             </Link>
-            <div className="flex items-center gap-6 text-sm">
-              <Link href="/" className="hover:underline">
+            <div className="flex items-center gap-1">
+              <Link
+                href="/"
+                className="rounded-lg px-3 py-1.5 text-sm text-ink-secondary transition-colors hover:bg-hairline hover:text-ink"
+              >
                 Dashboard
               </Link>
-              <Link href="/journal" className="hover:underline">
+              <Link
+                href="/journal"
+                className="rounded-lg px-3 py-1.5 text-sm text-ink-secondary transition-colors hover:bg-hairline hover:text-ink"
+              >
                 Journal
               </Link>
               <Link
                 href="/journal/new"
-                className="rounded-md bg-foreground px-3 py-1.5 text-background hover:opacity-90"
+                className="ml-2 rounded-lg bg-ink px-3.5 py-1.5 text-sm font-medium text-page transition-opacity hover:opacity-90"
               >
                 New entry
               </Link>
             </div>
           </nav>
         </header>
-        <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-8">{children}</main>
+        <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16 pt-6">{children}</main>
       </body>
     </html>
   );

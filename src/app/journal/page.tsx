@@ -8,135 +8,187 @@ function formatDate(d: Date) {
   return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
+function Meta({
+  confidence,
+  category,
+  consultedOthers,
+  trailing,
+}: {
+  confidence: number;
+  category: string | null;
+  consultedOthers: boolean;
+  trailing: string;
+}) {
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-muted">
+      <span className="rounded-md px-1.5 py-0.5 font-medium tabular-nums" style={{ background: "var(--accent-soft)", color: "var(--accent)" }}>
+        {confidence}% sure
+      </span>
+      <span aria-hidden="true">·</span>
+      <span>{consultedOthers ? "talked it through" : "reasoned alone"}</span>
+      {category && (
+        <>
+          <span aria-hidden="true">·</span>
+          <span>{category}</span>
+        </>
+      )}
+      <span aria-hidden="true">·</span>
+      <span>{trailing}</span>
+    </div>
+  );
+}
+
+/** Status colors can't carry meaning alone, so the glyph and word do the work. */
+function OutcomeBadge({ outcome }: { outcome: string | null }) {
+  const right = outcome === "correct";
+  return (
+    <span
+      className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+      style={{
+        background: right ? "var(--good-wash)" : "var(--critical-wash)",
+        color: right ? "var(--good)" : "var(--critical)",
+      }}
+    >
+      <span aria-hidden="true">{right ? "✓" : "✕"}</span>
+      {right ? "Right" : "Wrong"}
+    </span>
+  );
+}
+
 export default async function JournalPage() {
   const entries = await prisma.entry.findMany({ orderBy: { createdAt: "desc" } });
   const open = entries.filter((e) => e.status === "open");
   const resolved = entries.filter((e) => e.status === "resolved");
 
+  if (entries.length === 0) {
+    return (
+      <div className="max-w-lg space-y-4 py-8">
+        <h1 className="text-3xl font-semibold tracking-tight">Your journal is empty</h1>
+        <p className="text-sm leading-relaxed text-ink-secondary">
+          A decision journal only works if you write the entry before you know the answer.
+          Start with something you&rsquo;ll find out about within a month or two.
+        </p>
+        <Link
+          href="/journal/new"
+          className="inline-block rounded-lg bg-ink px-4 py-2 text-sm font-medium text-page transition-opacity hover:opacity-90"
+        >
+          Write your first entry
+        </Link>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-12">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Journal</h1>
-        <p className="mt-1 text-sm text-black/60 dark:text-white/60">
+    <div className="space-y-10">
+      <header className="pt-2">
+        <h1 className="text-3xl font-semibold tracking-tight">Journal</h1>
+        <p className="mt-2 text-sm text-ink-secondary tabular-nums">
           {entries.length} entries · {open.length} open · {resolved.length} resolved
         </p>
-      </div>
+      </header>
 
       {open.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-black/50 dark:text-white/50">
-            Awaiting resolution
+        <section className="space-y-3">
+          <h2 className="text-xs font-medium uppercase tracking-widest text-ink-muted">
+            Awaiting an outcome
           </h2>
-          <div className="space-y-4">
-            {open.map((entry) => (
-              <div
-                key={entry.id}
-                className="rounded-lg border border-black/10 p-4 dark:border-white/10"
+          {open.map((entry) => (
+            <article
+              key={entry.id}
+              className="rounded-xl border border-hairline bg-surface p-5"
+            >
+              <p className="font-medium leading-snug">{entry.decision}</p>
+              <p className="mt-2 text-sm leading-relaxed text-ink-secondary">
+                {entry.reasoning}
+              </p>
+              <Meta
+                confidence={entry.confidence}
+                category={entry.category}
+                consultedOthers={entry.consultedOthers}
+                trailing={`due ${formatDate(entry.resolutionDate)}`}
+              />
+
+              <form
+                action={resolveEntry}
+                className="mt-4 flex flex-wrap items-end gap-3 border-t border-hairline pt-4"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="font-medium">{entry.decision}</p>
-                    <p className="mt-1 text-sm text-black/60 dark:text-white/60">{entry.reasoning}</p>
-                    <p className="mt-2 text-xs text-black/40 dark:text-white/40">
-                      {entry.confidence}% confident
-                      {entry.category ? ` · ${entry.category}` : ""}
-                      {entry.consultedOthers ? " · talked it through" : " · reasoned alone"}
-                      {" · expected by "}
-                      {formatDate(entry.resolutionDate)}
-                    </p>
-                  </div>
-                </div>
-                <form action={resolveEntry} className="mt-4 flex flex-wrap items-end gap-3 border-t border-black/10 pt-4 dark:border-white/10">
-                  <input type="hidden" name="id" value={entry.id} />
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs text-black/50 dark:text-white/50">Outcome</label>
-                    <select
-                      name="outcome"
-                      required
-                      defaultValue=""
-                      className="rounded-md border border-black/15 bg-transparent px-2 py-1.5 text-sm dark:border-white/15"
-                    >
-                      <option value="" disabled>
-                        Select…
-                      </option>
-                      <option value="correct">Turned out right</option>
-                      <option value="incorrect">Turned out wrong</option>
-                    </select>
-                  </div>
-                  <div className="flex flex-1 min-w-[12rem] flex-col gap-1">
-                    <label className="text-xs text-black/50 dark:text-white/50">Note (optional)</label>
-                    <input
-                      type="text"
-                      name="resolutionNote"
-                      placeholder="What actually happened?"
-                      className="w-full rounded-md border border-black/15 bg-transparent px-2 py-1.5 text-sm dark:border-white/15"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="rounded-md bg-foreground px-3 py-1.5 text-sm text-background hover:opacity-90"
+                <input type="hidden" name="id" value={entry.id} />
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    htmlFor={`outcome-${entry.id}`}
+                    className="text-xs text-ink-muted"
                   >
-                    Resolve
-                  </button>
-                </form>
-              </div>
-            ))}
-          </div>
+                    How did it go?
+                  </label>
+                  <select
+                    id={`outcome-${entry.id}`}
+                    name="outcome"
+                    required
+                    defaultValue=""
+                    className="rounded-lg border border-hairline bg-page px-2.5 py-2 text-sm"
+                  >
+                    <option value="" disabled>
+                      Select…
+                    </option>
+                    <option value="correct">Turned out right</option>
+                    <option value="incorrect">Turned out wrong</option>
+                  </select>
+                </div>
+                <div className="flex min-w-[12rem] flex-1 flex-col gap-1.5">
+                  <label
+                    htmlFor={`note-${entry.id}`}
+                    className="text-xs text-ink-muted"
+                  >
+                    What actually happened? <span className="opacity-70">(optional)</span>
+                  </label>
+                  <input
+                    id={`note-${entry.id}`}
+                    type="text"
+                    name="resolutionNote"
+                    className="w-full rounded-lg border border-hairline bg-page px-2.5 py-2 text-sm"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-ink px-3.5 py-2 text-sm font-medium text-page transition-opacity hover:opacity-90"
+                >
+                  Resolve
+                </button>
+              </form>
+            </article>
+          ))}
         </section>
       )}
 
-      {entries.length === 0 && (
-        <p className="text-sm text-black/60 dark:text-white/60">
-          No entries yet.{" "}
-          <Link href="/journal/new" className="underline">
-            Write your first one.
-          </Link>
-        </p>
-      )}
-
-      {resolved.length > 0 && (
-      <section className="space-y-4">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-black/50 dark:text-white/50">
+      <section className="space-y-3">
+        <h2 className="text-xs font-medium uppercase tracking-widest text-ink-muted">
           Resolved
         </h2>
-        <div className="space-y-3">
-          {resolved.map((entry) => (
-            <div
-              key={entry.id}
-              className="rounded-lg border border-black/10 p-4 dark:border-white/10"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-medium">{entry.decision}</p>
-                  <p className="mt-1 text-sm text-black/60 dark:text-white/60">{entry.reasoning}</p>
-                  {entry.resolutionNote && (
-                    <p className="mt-2 text-sm italic text-black/50 dark:text-white/50">
-                      &ldquo;{entry.resolutionNote}&rdquo;
-                    </p>
-                  )}
-                  <p className="mt-2 text-xs text-black/40 dark:text-white/40">
-                    {entry.confidence}% confident
-                    {entry.category ? ` · ${entry.category}` : ""}
-                    {entry.consultedOthers ? " · talked it through" : " · reasoned alone"}
-                    {" · resolved "}
-                    {formatDate(entry.resolutionDate)}
+        {resolved.map((entry) => (
+          <article key={entry.id} className="rounded-xl border border-hairline bg-surface p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="font-medium leading-snug">{entry.decision}</p>
+                <p className="mt-2 text-sm leading-relaxed text-ink-secondary">
+                  {entry.reasoning}
+                </p>
+                {entry.resolutionNote && (
+                  <p className="mt-3 border-l-2 border-hairline pl-3 text-sm leading-relaxed text-ink-muted">
+                    {entry.resolutionNote}
                   </p>
-                </div>
-                <span
-                  className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
-                    entry.outcome === "correct"
-                      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
-                      : "bg-rose-500/15 text-rose-700 dark:text-rose-400"
-                  }`}
-                >
-                  {entry.outcome === "correct" ? "Right" : "Wrong"}
-                </span>
+                )}
+                <Meta
+                  confidence={entry.confidence}
+                  category={entry.category}
+                  consultedOthers={entry.consultedOthers}
+                  trailing={`resolved ${formatDate(entry.resolutionDate)}`}
+                />
               </div>
+              <OutcomeBadge outcome={entry.outcome} />
             </div>
-          ))}
-        </div>
+          </article>
+        ))}
       </section>
-      )}
     </div>
   );
 }

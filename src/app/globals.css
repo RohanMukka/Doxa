@@ -1,26 +1,108 @@
 @import "tailwindcss";
 
+/* Palette roles. Light values live on bare :root; dark is redefined under both
+   the OS media query and an explicit [data-theme] stamp so a toggle wins either
+   way. Nothing gets its only definition inside a dark block. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink: #0b0b0b;
+  --ink-secondary: #52514e;
+  --ink-muted: #898781;
+  --hairline: rgba(11, 11, 11, 0.1);
+  --gridline: #e1e0d9;
+  --axis: #c3c2b7;
+
+  /* Emphasis hue — the one series that carries meaning. */
+  --accent: #2a78d6;
+  --accent-soft: rgba(42, 120, 214, 0.1);
+
+  /* Dumbbell: one hue, two shades. Light mode goes no lighter than step 250. */
+  --shade-said: #86b6ef;
+  --shade-right: #2a78d6;
+
+  --good: #0ca30c;
+  --critical: #d03b3b;
+  --good-wash: rgba(12, 163, 12, 0.1);
+  --critical-wash: rgba(208, 59, 59, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink: #ffffff;
+    --ink-secondary: #c3c2b7;
+    --ink-muted: #898781;
+    --hairline: rgba(255, 255, 255, 0.1);
+    --gridline: #2c2c2a;
+    --axis: #383835;
+
+    --accent: #3987e5;
+    --accent-soft: rgba(57, 135, 229, 0.16);
+
+    /* Dark mode re-steps the same hue for the dark surface; the lighter step
+       carries the emphasis here, since lighter reads as forward on dark. */
+    --shade-said: #256abf;
+    --shade-right: #86b6ef;
+
+    --good: #0ca30c;
+    --critical: #d03b3b;
+    --good-wash: rgba(12, 163, 12, 0.16);
+    --critical-wash: rgba(208, 59, 59, 0.16);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --ink: #ffffff;
+  --ink-secondary: #c3c2b7;
+  --ink-muted: #898781;
+  --hairline: rgba(255, 255, 255, 0.1);
+  --gridline: #2c2c2a;
+  --axis: #383835;
+
+  --accent: #3987e5;
+  --accent-soft: rgba(57, 135, 229, 0.16);
+
+  --shade-said: #256abf;
+  --shade-right: #86b6ef;
+
+  --good: #0ca30c;
+  --critical: #d03b3b;
+  --good-wash: rgba(12, 163, 12, 0.16);
+  --critical-wash: rgba(208, 59, 59, 0.16);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-muted: var(--ink-muted);
+  --color-hairline: var(--hairline);
+  --color-accent: var(--accent);
+  --color-good: var(--good);
+  --color-critical: var(--critical);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Recharts paints its own SVG text; steer it to the ink tokens. */
+.recharts-cartesian-axis-tick text {
+  fill: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
 }

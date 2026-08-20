@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { CalibrationChart } from "@/components/calibration-chart";
+import { ConsultationSplit } from "@/components/consultation-split";
 import { InsightsPanel } from "@/components/insights-panel";
 import { getLatestAnalysis } from "@/lib/analysis";
 import { runAnalysis } from "@/lib/actions";
@@ -14,13 +15,21 @@ import {
 
 export const dynamic = "force-dynamic";
 
-function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Card({
+  title,
+  caption,
+  children,
+}: {
+  title: string;
+  caption?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="rounded-lg border border-black/10 p-4 dark:border-white/10">
-      <p className="text-xs uppercase tracking-wide text-black/50 dark:text-white/50">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
-      {sub && <p className="mt-1 text-xs text-black/50 dark:text-white/50">{sub}</p>}
-    </div>
+    <section className="rounded-xl border border-hairline bg-surface p-6">
+      <h2 className="text-sm font-semibold">{title}</h2>
+      {caption && <p className="mt-1 text-xs leading-relaxed text-ink-secondary">{caption}</p>}
+      <div className="mt-5">{children}</div>
+    </section>
   );
 }
 
@@ -37,45 +46,63 @@ export default async function DashboardPage() {
 
   if (resolved.length === 0) {
     return (
-      <div className="max-w-lg space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Calibration</h1>
-        <p className="text-sm text-black/60 dark:text-white/60">
-          Nothing to measure yet. Log a few decisions with how confident you are, then come
-          back once you know how they turned out — the gap between the two is the whole point.
+      <div className="max-w-lg space-y-4 py-8">
+        <h1 className="text-3xl font-semibold tracking-tight">Nothing to measure yet</h1>
+        <p className="text-sm leading-relaxed text-ink-secondary">
+          Log a few decisions with how confident you are, then come back once you know how
+          they turned out. The gap between those two numbers is the whole point.
         </p>
         <Link
           href="/journal/new"
-          className="inline-block rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+          className="inline-block rounded-lg bg-ink px-4 py-2 text-sm font-medium text-page transition-opacity hover:opacity-90"
         >
           Write your first entry
         </Link>
         {openCount > 0 && (
-          <p className="text-sm text-black/50 dark:text-white/50">
-            You have {openCount} {openCount === 1 ? "entry" : "entries"} waiting to be resolved.
+          <p className="text-sm text-ink-muted">
+            {openCount} {openCount === 1 ? "entry is" : "entries are"} waiting to be resolved.
           </p>
         )}
       </div>
     );
   }
 
-  return (
-    <div className="space-y-10">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Calibration</h1>
-        <p className="mt-1 text-sm text-black/60 dark:text-white/60">
-          {resolved.length} resolved decisions · {openCount} still open
-        </p>
-      </div>
+  const overconfident = gap !== null && gap > 0;
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Stat label="You said" value={stated !== null ? `${stated}%` : "—"} sub="average confidence" />
-        <Stat label="Actually right" value={actual !== null ? `${actual}%` : "—"} sub="across all resolved" />
-        <Stat
-          label="Gap"
-          value={gap !== null ? `${gap > 0 ? "+" : ""}${gap} pts` : "—"}
-          sub={gap !== null && gap > 0 ? "overconfident" : "underconfident"}
-        />
-      </div>
+  return (
+    <div className="space-y-6">
+      <header className="pt-2">
+        <p className="text-xs font-medium uppercase tracking-widest text-ink-muted">
+          Calibration
+        </p>
+        <h1 className="mt-2 max-w-2xl text-3xl font-semibold leading-tight tracking-tight">
+          {gap === null ? (
+            "Not enough resolved decisions yet."
+          ) : overconfident ? (
+            <>
+              You were sure{" "}
+              <span className="tabular-nums" style={{ color: "var(--critical)" }}>
+                {gap} points
+              </span>{" "}
+              more often than you were right.
+            </>
+          ) : (
+            <>
+              You sell yourself short by{" "}
+              <span className="tabular-nums" style={{ color: "var(--accent)" }}>
+                {Math.abs(gap)} points
+              </span>
+              .
+            </>
+          )}
+        </h1>
+        <p className="mt-3 text-sm text-ink-secondary">
+          Across {resolved.length} resolved decisions you said you were{" "}
+          <span className="tabular-nums">{stated}%</span> confident on average, and turned out
+          right <span className="tabular-nums">{actual}%</span> of the time
+          {openCount > 0 && ` · ${openCount} still open`}.
+        </p>
+      </header>
 
       <InsightsPanel
         insights={analysis?.insights ?? null}
@@ -83,26 +110,51 @@ export default async function DashboardPage() {
         action={runAnalysis}
       />
 
-      <section className="rounded-lg border border-black/10 p-5 dark:border-white/10">
-        <h2 className="text-sm font-medium">Confidence vs. reality</h2>
-        <p className="mt-1 mb-4 text-xs text-black/50 dark:text-white/50">
-          Where the solid line sits below the dashed one, you were more sure than you should have been.
-        </p>
-        <CalibrationChart buckets={buckets} />
-      </section>
+      <div className="grid gap-6 lg:grid-cols-5">
+        <div className="lg:col-span-3">
+          <Card
+            title="Confidence against reality"
+            caption="A perfectly calibrated person's line would sit on the dashed one. Below it means you were more certain than the outcomes justified."
+          >
+            <CalibrationChart buckets={buckets} />
+          </Card>
+        </div>
 
-      <section className="grid gap-4 sm:grid-cols-2">
-        <Stat
-          label="Reasoned alone"
-          value={accuracyFor(solo) !== null ? `${accuracyFor(solo)}%` : "—"}
-          sub={`right, on ${averageConfidence(solo) ?? "—"}% average confidence · ${solo.length} decisions`}
-        />
-        <Stat
-          label="Talked it through"
-          value={accuracyFor(consulted) !== null ? `${accuracyFor(consulted)}%` : "—"}
-          sub={`right, on ${averageConfidence(consulted) ?? "—"}% average confidence · ${consulted.length} decisions`}
-        />
-      </section>
+        <div className="lg:col-span-2">
+          <Card
+            title="Alone, or talked through"
+            caption="The same confidence means different things depending on whether anyone else saw your reasoning first."
+          >
+            <ConsultationSplit
+              groups={[
+                {
+                  label: "Reasoned alone",
+                  stated: averageConfidence(solo),
+                  actual: accuracyFor(solo),
+                  count: solo.length,
+                },
+                {
+                  label: "Talked it through",
+                  stated: averageConfidence(consulted),
+                  actual: accuracyFor(consulted),
+                  count: consulted.length,
+                },
+              ]}
+            />
+          </Card>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between rounded-xl border border-hairline bg-surface px-6 py-4">
+        <p className="text-sm text-ink-secondary">
+          {openCount > 0
+            ? `${openCount} ${openCount === 1 ? "decision is" : "decisions are"} still waiting on an outcome.`
+            : "Every decision you've logged has been resolved."}
+        </p>
+        <Link href="/journal" className="text-sm font-medium hover:underline">
+          Open the journal →
+        </Link>
+      </div>
     </div>
   );
 }

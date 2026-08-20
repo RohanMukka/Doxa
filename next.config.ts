@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // The floating dev badge sits on top of the dashboard and lands in every
+  // screenshot; nothing here depends on it.
+  devIndicators: false,
 };
 
 export default nextConfig;

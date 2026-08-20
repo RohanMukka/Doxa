@@ -11,7 +11,7 @@ function RunButton({ hasExisting }: { hasExisting: boolean }) {
     <button
       type="submit"
       disabled={pending}
-      className="shrink-0 rounded-md border border-black/15 px-3 py-1.5 text-xs hover:bg-black/5 disabled:opacity-50 dark:border-white/15 dark:hover:bg-white/5"
+      className="shrink-0 rounded-lg bg-ink px-3.5 py-2 text-xs font-medium text-page transition-opacity hover:opacity-90 disabled:opacity-50"
     >
       {pending ? "Reading your entries…" : hasExisting ? "Re-run" : "Find my patterns"}
     </button>
@@ -32,36 +32,51 @@ export function InsightsPanel({
     {}
   );
 
+  const hasInsights = Boolean(insights && insights.length > 0);
+
   return (
-    <section className="rounded-lg border border-black/10 p-5 dark:border-white/10">
+    <section className="rounded-xl border border-hairline bg-surface p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-sm font-medium">What your reasoning keeps doing</h2>
-          <p className="mt-1 text-xs text-black/50 dark:text-white/50">
+          <h2 className="text-sm font-semibold">What your reasoning keeps doing</h2>
+          <p className="mt-1 text-xs leading-relaxed text-ink-secondary">
             {entriesAnalyzed
               ? `Read across ${entriesAnalyzed} resolved decisions.`
-              : "Reads every resolved entry and looks for where your certainty runs ahead of your accuracy."}
+              : "Reads every resolved entry, looking for where your certainty runs ahead of your accuracy."}
           </p>
         </div>
         <form action={formAction}>
-          <RunButton hasExisting={Boolean(insights?.length)} />
+          <RunButton hasExisting={hasInsights} />
         </form>
       </div>
 
       {state.error && (
-        <p className="mt-4 rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+        <p
+          className="mt-5 rounded-lg px-3 py-2.5 text-xs leading-relaxed"
+          style={{ background: "var(--critical-wash)", color: "var(--critical)" }}
+          role="status"
+        >
           {state.error}
         </p>
       )}
 
-      {insights && insights.length > 0 ? (
-        <ol className="mt-5 space-y-5">
-          {insights.map((insight, i) => (
-            <li key={i} className="border-l-2 border-black/15 pl-4 dark:border-white/15">
+      {hasInsights ? (
+        <ol className="mt-6 space-y-6">
+          {insights!.map((insight, i) => (
+            <li key={i} className="relative pl-9">
+              <span
+                className="absolute left-0 top-0 flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold tabular-nums"
+                style={{ background: "var(--accent-soft)", color: "var(--accent)" }}
+                aria-hidden="true"
+              >
+                {i + 1}
+              </span>
               <p className="font-medium leading-snug">{insight.headline}</p>
-              <p className="mt-1.5 text-sm text-black/65 dark:text-white/65">{insight.evidence}</p>
-              <p className="mt-2 text-sm">
-                <span className="text-black/40 dark:text-white/40">Try instead: </span>
+              <p className="mt-2 text-sm leading-relaxed text-ink-secondary">
+                {insight.evidence}
+              </p>
+              <p className="mt-2.5 text-sm leading-relaxed">
+                <span className="text-ink-muted">Try instead — </span>
                 {insight.tryInstead}
               </p>
             </li>
@@ -69,8 +84,9 @@ export function InsightsPanel({
         </ol>
       ) : (
         !state.error && (
-          <p className="mt-5 text-sm text-black/50 dark:text-white/50">
-            Nothing read yet. The chart below shows the gap; this finds out why it&rsquo;s there.
+          <p className="mt-5 text-sm leading-relaxed text-ink-muted">
+            Nothing read yet. The chart below shows that a gap exists; this works out why
+            it&rsquo;s there.
           </p>
         )
       )}
