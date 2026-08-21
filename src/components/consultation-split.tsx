@@ -19,7 +19,7 @@ export function ConsultationSplit({ groups }: { groups: Group[] }) {
 
   return (
     <div>
-      <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
+      <div className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px]">
         <span className="flex items-center gap-2">
           <span
             className="inline-block h-2.5 w-2.5 rounded-full"
@@ -48,9 +48,9 @@ export function ConsultationSplit({ groups }: { groups: Group[] }) {
 
           return (
             <div key={g.label}>
-              <div className="mb-2.5 flex items-baseline justify-between gap-4">
-                <span className="text-sm font-medium">{g.label}</span>
-                <span className="text-xs text-ink-muted tabular-nums">
+              <div className="mb-3 flex items-baseline justify-between gap-4">
+                <span className="text-[14px] font-medium tracking-tight">{g.label}</span>
+                <span className="text-[12px] text-ink-muted tabular-nums">
                   {g.count} {g.count === 1 ? "decision" : "decisions"}
                 </span>
               </div>
@@ -93,7 +93,7 @@ export function ConsultationSplit({ groups }: { groups: Group[] }) {
                 />
               </div>
 
-              <div className="mt-2.5 flex items-baseline justify-between gap-4 text-xs tabular-nums">
+              <div className="mt-3 flex items-baseline justify-between gap-4 text-[12px] tabular-nums">
                 <span className="text-ink-secondary">
                   said {stated}% · right {actual}%
                 </span>
@@ -109,8 +109,8 @@ export function ConsultationSplit({ groups }: { groups: Group[] }) {
         })}
       </div>
 
-      <div className="mt-7 border-t border-hairline pt-4">
-        <table className="w-full text-xs tabular-nums">
+      <div className="mt-8 border-t border-hairline pt-5">
+        <table className="w-full text-[12px] tabular-nums">
           <caption className="sr-only">
             Stated confidence versus actual accuracy, split by whether the decision was
             talked through with someone
@@ -148,7 +148,7 @@ export function ConsultationSplit({ groups }: { groups: Group[] }) {
             ))}
           </tbody>
         </table>
-        <p className="mt-3 text-xs leading-relaxed text-ink-muted">
+        <p className="mt-3 text-[12px] leading-relaxed text-ink-muted">
           Lower Brier is better. The two groups are small, so read the direction of the
           difference rather than the exact figures.
         </p>

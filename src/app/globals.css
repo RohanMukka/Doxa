@@ -1,52 +1,64 @@
 @import "tailwindcss";
 
-/* Palette roles. Light values live on bare :root; dark is redefined under both
-   the OS media query and an explicit [data-theme] stamp so a toggle wins either
-   way. Nothing gets its only definition inside a dark block. */
+/*
+  Doxa reads as an editorial object rather than a dashboard: warm paper, an
+  ink-on-page palette, and a serif reserved for prose. Numbers and data stay in
+  the sans — a serif numeral in a chart reads as decoration.
+
+  Light values live on bare :root; dark is redefined under both the OS media
+  query and an explicit [data-theme] stamp so a toggle wins either way.
+*/
 :root {
   color-scheme: light;
 
-  --page: #f9f9f7;
-  --surface: #fcfcfb;
-  --ink: #0b0b0b;
-  --ink-secondary: #52514e;
-  --ink-muted: #898781;
-  --hairline: rgba(11, 11, 11, 0.1);
-  --gridline: #e1e0d9;
-  --axis: #c3c2b7;
+  --page: #f4f1ea;
+  --surface: #fdfbf7;
+  --surface-raised: #ffffff;
 
-  /* Emphasis hue — the one series that carries meaning. */
+  --ink: #14120f;
+  --ink-secondary: #55504a;
+  --ink-muted: #8a8378;
+
+  --hairline: rgba(20, 18, 15, 0.09);
+  --hairline-strong: rgba(20, 18, 15, 0.16);
+  --gridline: #e3ded2;
+  --axis: #c4bdae;
+
   --accent: #2a78d6;
   --accent-soft: rgba(42, 120, 214, 0.1);
 
-  /* Dumbbell: one hue, two shades. Light mode goes no lighter than step 250. */
   --shade-said: #86b6ef;
   --shade-right: #2a78d6;
 
   --good: #0ca30c;
   --critical: #d03b3b;
   --good-wash: rgba(12, 163, 12, 0.1);
-  --critical-wash: rgba(208, 59, 59, 0.1);
+  --critical-wash: rgba(208, 59, 59, 0.09);
+
+  --shadow-card: 0 1px 2px rgba(20, 18, 15, 0.04), 0 4px 16px rgba(20, 18, 15, 0.03);
+  --shadow-raised: 0 1px 2px rgba(20, 18, 15, 0.05), 0 8px 28px rgba(20, 18, 15, 0.06);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --page: #0d0d0d;
-    --surface: #1a1a19;
-    --ink: #ffffff;
-    --ink-secondary: #c3c2b7;
-    --ink-muted: #898781;
-    --hairline: rgba(255, 255, 255, 0.1);
-    --gridline: #2c2c2a;
-    --axis: #383835;
+    --page: #0d0c10;
+    --surface: #16151a;
+    --surface-raised: #1c1b21;
+
+    --ink: #f6f4ef;
+    --ink-secondary: #b5b1a8;
+    --ink-muted: #837d73;
+
+    --hairline: rgba(246, 244, 239, 0.1);
+    --hairline-strong: rgba(246, 244, 239, 0.18);
+    --gridline: #2a2830;
+    --axis: #3a3742;
 
     --accent: #3987e5;
     --accent-soft: rgba(57, 135, 229, 0.16);
 
-    /* Dark mode re-steps the same hue for the dark surface; the lighter step
-       carries the emphasis here, since lighter reads as forward on dark. */
     --shade-said: #256abf;
     --shade-right: #86b6ef;
 
@@ -54,20 +66,27 @@
     --critical: #d03b3b;
     --good-wash: rgba(12, 163, 12, 0.16);
     --critical-wash: rgba(208, 59, 59, 0.16);
+
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 20px rgba(0, 0, 0, 0.28);
+    --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 32px rgba(0, 0, 0, 0.36);
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --page: #0d0d0d;
-  --surface: #1a1a19;
-  --ink: #ffffff;
-  --ink-secondary: #c3c2b7;
-  --ink-muted: #898781;
-  --hairline: rgba(255, 255, 255, 0.1);
-  --gridline: #2c2c2a;
-  --axis: #383835;
+  --page: #0d0c10;
+  --surface: #16151a;
+  --surface-raised: #1c1b21;
+
+  --ink: #f6f4ef;
+  --ink-secondary: #b5b1a8;
+  --ink-muted: #837d73;
+
+  --hairline: rgba(246, 244, 239, 0.1);
+  --hairline-strong: rgba(246, 244, 239, 0.18);
+  --gridline: #2a2830;
+  --axis: #3a3742;
 
   --accent: #3987e5;
   --accent-soft: rgba(57, 135, 229, 0.16);
@@ -79,30 +98,158 @@
   --critical: #d03b3b;
   --good-wash: rgba(12, 163, 12, 0.16);
   --critical-wash: rgba(208, 59, 59, 0.16);
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 20px rgba(0, 0, 0, 0.28);
+  --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 32px rgba(0, 0, 0, 0.36);
 }
 
 @theme inline {
   --color-page: var(--page);
   --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
   --color-ink: var(--ink);
   --color-ink-secondary: var(--ink-secondary);
   --color-ink-muted: var(--ink-muted);
   --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
   --color-accent: var(--accent);
   --color-good: var(--good);
   --color-critical: var(--critical);
   --font-sans: var(--font-geist-sans);
+  --font-serif: var(--font-newsreader);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--page);
   color: var(--ink);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Prose display face. Reserved for headlines and pull quotes — never numerals. */
+.display {
+  font-family: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: -0.011em;
+  line-height: 1.15;
+}
+
+.display em {
+  font-style: italic;
+}
+
+/* Small caps-ish eyebrow used above section headings. */
+.eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* The confidence slider is the most-touched control in the app; the default
+   platform widget is the one thing on the page that looks unconsidered. */
+input[type="range"].confidence {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 22px;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"].confidence::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) var(--fill, 70%),
+    var(--gridline) var(--fill, 70%),
+    var(--gridline) 100%
+  );
+}
+
+input[type="range"].confidence::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--gridline);
+}
+
+input[type="range"].confidence::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+input[type="range"].confidence::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 18px;
+  width: 18px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 3px solid var(--surface);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+input[type="range"].confidence::-moz-range-thumb {
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 3px solid var(--surface);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+}
+
+input[type="range"].confidence:hover::-webkit-slider-thumb,
+input[type="range"].confidence:active::-webkit-slider-thumb {
+  transform: scale(1.12);
 }
 
 /* Recharts paints its own SVG text; steer it to the ink tokens. */
 .recharts-cartesian-axis-tick text {
   fill: var(--ink-muted);
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+  }
 }

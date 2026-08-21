@@ -22,8 +22,11 @@ function Meta({
   trailing: string;
 }) {
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-muted">
-      <span className="rounded-md px-1.5 py-0.5 font-medium tabular-nums" style={{ background: "var(--accent-soft)", color: "var(--accent)" }}>
+    <div className="mt-4 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[12px] text-ink-muted">
+      <span
+        className="rounded-full px-2 py-0.5 font-medium tabular-nums"
+        style={{ background: "var(--accent-soft)", color: "var(--accent)" }}
+      >
         {confidence}% sure
       </span>
       <span aria-hidden="true">·</span>
@@ -45,7 +48,7 @@ function OutcomeBadge({ outcome }: { outcome: string | null }) {
   const right = outcome === "correct";
   return (
     <span
-      className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+      className="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium"
       style={{
         background: right ? "var(--good-wash)" : "var(--critical-wash)",
         color: right ? "var(--good)" : "var(--critical)",
@@ -64,45 +67,45 @@ export default async function JournalPage() {
 
   if (entries.length === 0) {
     return (
-      <div className="space-y-6 py-8">
-        <div className="max-w-lg space-y-4">
-          <h1 className="text-3xl font-semibold tracking-tight">Your journal is empty</h1>
-          <p className="text-sm leading-relaxed text-ink-secondary">
+      <div className="rise space-y-10">
+        <header className="max-w-xl">
+          <p className="eyebrow">Journal</p>
+          <h1 className="display mt-4 text-[42px]">Nothing written down yet.</h1>
+          <p className="mt-5 text-[15px] leading-relaxed text-ink-secondary">
             A decision journal only works if you write the entry before you know the answer.
           </p>
           <Link
             href="/journal/new"
-            className="inline-block rounded-lg bg-ink px-4 py-2 text-sm font-medium text-page transition-opacity hover:opacity-90"
+            className="mt-6 inline-block rounded-full bg-ink px-5 py-2.5 text-[13px] font-medium text-page transition-opacity duration-200 hover:opacity-85"
           >
             Write your own entry
           </Link>
-        </div>
+        </header>
         <StarterList />
       </div>
     );
   }
 
   return (
-    <div className="space-y-10">
-      <header className="pt-2">
-        <h1 className="text-3xl font-semibold tracking-tight">Journal</h1>
-        <p className="mt-2 text-sm text-ink-secondary tabular-nums">
+    <div className="rise space-y-12">
+      <header className="border-b border-hairline pb-8">
+        <p className="eyebrow">Journal</p>
+        <h1 className="display mt-4 text-[40px]">Everything you wrote down first.</h1>
+        <p className="mt-4 text-[13px] text-ink-secondary tabular-nums">
           {entries.length} entries · {open.length} open · {resolved.length} resolved
         </p>
       </header>
 
       {open.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-xs font-medium uppercase tracking-widest text-ink-muted">
-            Awaiting an outcome
-          </h2>
+        <section className="space-y-4">
+          <h2 className="eyebrow">Awaiting an outcome</h2>
           {open.map((entry) => (
             <article
               key={entry.id}
-              className="rounded-xl border border-hairline bg-surface p-5"
+              className="rounded-2xl border border-hairline bg-surface p-6 shadow-[var(--shadow-card)]"
             >
-              <p className="font-medium leading-snug">{entry.decision}</p>
-              <p className="mt-2 text-sm leading-relaxed text-ink-secondary">
+              <p className="display text-[19px] leading-snug">{entry.decision}</p>
+              <p className="mt-3 text-[14px] leading-relaxed text-ink-secondary">
                 {entry.reasoning}
               </p>
               <Meta
@@ -111,27 +114,30 @@ export default async function JournalPage() {
                 consultedOthers={entry.consultedOthers}
                 trailing={`due ${formatDate(entry.resolutionDate)}`}
               />
-
               <ResolveForm id={entry.id} action={resolveEntry} />
             </article>
           ))}
         </section>
       )}
 
-      <section className="space-y-3">
-        <h2 className="text-xs font-medium uppercase tracking-widest text-ink-muted">
-          Resolved
-        </h2>
+      <section className="space-y-4">
+        <h2 className="eyebrow">Resolved</h2>
         {resolved.map((entry) => (
-          <article key={entry.id} className="rounded-xl border border-hairline bg-surface p-5">
-            <div className="flex items-start justify-between gap-4">
+          <article
+            key={entry.id}
+            className="rounded-2xl border border-hairline bg-surface p-6 shadow-[var(--shadow-card)]"
+          >
+            <div className="flex items-start justify-between gap-5">
               <div className="min-w-0">
-                <p className="font-medium leading-snug">{entry.decision}</p>
-                <p className="mt-2 text-sm leading-relaxed text-ink-secondary">
+                <p className="display text-[19px] leading-snug">{entry.decision}</p>
+                <p className="mt-3 text-[14px] leading-relaxed text-ink-secondary">
                   {entry.reasoning}
                 </p>
                 {entry.resolutionNote && (
-                  <p className="mt-3 border-l-2 border-hairline pl-3 text-sm leading-relaxed text-ink-muted">
+                  <p
+                    className="mt-4 border-l-2 pl-4 text-[14px] italic leading-relaxed text-ink-muted"
+                    style={{ borderColor: "var(--hairline-strong)" }}
+                  >
                     {entry.resolutionNote}
                   </p>
                 )}

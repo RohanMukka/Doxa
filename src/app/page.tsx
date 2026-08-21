@@ -4,6 +4,7 @@ import { CalibrationChart } from "@/components/calibration-chart";
 import { ConsultationSplit } from "@/components/consultation-split";
 import { InsightsPanel } from "@/components/insights-panel";
 import { StarterList } from "@/components/starter-list";
+import { Card } from "@/components/card";
 import { getLatestAnalysis } from "@/lib/analysis";
 import { runAnalysis } from "@/lib/actions";
 import {
@@ -19,21 +20,22 @@ import {
 
 export const dynamic = "force-dynamic";
 
-function Card({
-  title,
-  caption,
-  children,
+function Metric({
+  label,
+  value,
+  note,
 }: {
-  title: string;
-  caption?: string;
-  children: React.ReactNode;
+  label: string;
+  value: string;
+  note: string;
 }) {
   return (
-    <section className="rounded-xl border border-hairline bg-surface p-6">
-      <h2 className="text-sm font-semibold">{title}</h2>
-      {caption && <p className="mt-1 text-xs leading-relaxed text-ink-secondary">{caption}</p>}
-      <div className="mt-5">{children}</div>
-    </section>
+    <div className="flex-1">
+      <dt className="eyebrow">{label}</dt>
+      {/* Numerals stay in the sans — a serif figure reads as decoration. */}
+      <dd className="mt-1.5 text-[26px] font-medium leading-none tracking-tight">{value}</dd>
+      <dd className="mt-2 text-[13px] leading-relaxed text-ink-secondary">{note}</dd>
+    </div>
   );
 }
 
@@ -53,25 +55,26 @@ export default async function DashboardPage() {
 
   if (resolved.length === 0) {
     return (
-      <div className="space-y-6 py-8">
-        <div className="max-w-lg space-y-4">
-          <h1 className="text-3xl font-semibold tracking-tight">Nothing to measure yet</h1>
-          <p className="text-sm leading-relaxed text-ink-secondary">
+      <div className="rise space-y-10">
+        <header className="max-w-xl">
+          <p className="eyebrow">Calibration</p>
+          <h1 className="display mt-4 text-[42px]">Nothing to measure yet.</h1>
+          <p className="mt-5 text-[15px] leading-relaxed text-ink-secondary">
             Calibration needs decisions that have actually resolved. The catch is that the
             decisions worth journalling take months to settle — so start somewhere faster.
           </p>
           <Link
             href="/journal/new"
-            className="inline-block rounded-lg bg-ink px-4 py-2 text-sm font-medium text-page transition-opacity hover:opacity-90"
+            className="mt-6 inline-block rounded-full bg-ink px-5 py-2.5 text-[13px] font-medium text-page transition-opacity duration-200 hover:opacity-85"
           >
             Write your own entry
           </Link>
           {openCount > 0 && (
-            <p className="text-sm text-ink-muted">
+            <p className="mt-4 text-[13px] text-ink-muted">
               {openCount} {openCount === 1 ? "entry is" : "entries are"} waiting on an outcome.
             </p>
           )}
-        </div>
+        </header>
         <StarterList />
       </div>
     );
@@ -80,19 +83,18 @@ export default async function DashboardPage() {
   const overconfident = gap !== null && gap > 0;
 
   return (
-    <div className="space-y-6">
-      <header className="pt-2">
-        <p className="text-xs font-medium uppercase tracking-widest text-ink-muted">
-          Calibration
-        </p>
-        <h1 className="mt-2 max-w-2xl text-3xl font-semibold leading-tight tracking-tight">
+    <div className="rise space-y-8">
+      <header className="border-b border-hairline pb-9">
+        <p className="eyebrow">Calibration</p>
+
+        <h1 className="display mt-4 max-w-3xl text-[40px] sm:text-[52px]">
           {gap === null ? (
             "Not enough resolved decisions yet."
           ) : solid ? (
             overconfident ? (
               <>
                 You were sure{" "}
-                <span className="tabular-nums" style={{ color: "var(--critical)" }}>
+                <span className="font-sans text-[0.86em] font-medium tracking-tight" style={{ color: "var(--critical)" }}>
                   {gap} points
                 </span>{" "}
                 more often than you were right.
@@ -100,7 +102,7 @@ export default async function DashboardPage() {
             ) : (
               <>
                 You sell yourself short by{" "}
-                <span className="tabular-nums" style={{ color: "var(--accent)" }}>
+                <span className="font-sans text-[0.86em] font-medium tracking-tight" style={{ color: "var(--accent)" }}>
                   {Math.abs(gap)} points
                 </span>
                 .
@@ -109,18 +111,20 @@ export default async function DashboardPage() {
           ) : (
             <>
               Leaning{" "}
-              <span className="tabular-nums" style={{ color: "var(--ink)" }}>
+              <span className="font-sans text-[0.86em] font-medium tracking-tight">
                 {Math.abs(gap)} points {overconfident ? "overconfident" : "underconfident"}
               </span>
-              , but not yet past the noise.
+              , <em>but not yet past the noise.</em>
             </>
           )}
         </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-secondary">
-          Across {resolved.length} resolved decisions you said you were{" "}
-          <span className="tabular-nums">{stated}%</span> confident on average, and turned out
-          right <span className="tabular-nums">{actual}%</span> of the time
-          {openCount > 0 && ` · ${openCount} still open`}.
+
+        <p className="mt-6 max-w-2xl text-[15px] leading-relaxed text-ink-secondary">
+          Across <span className="tabular-nums text-ink">{resolved.length}</span> resolved
+          decisions you said you were{" "}
+          <span className="tabular-nums text-ink">{stated}%</span> confident on average, and
+          turned out right <span className="tabular-nums text-ink">{actual}%</span> of the
+          time{openCount > 0 && <> · {openCount} still open</>}.
           {!solid && (
             <>
               {" "}
@@ -130,23 +134,17 @@ export default async function DashboardPage() {
           )}
         </p>
 
-        <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3">
-          <div>
-            <dt className="text-xs text-ink-muted">Calibration error</dt>
-            <dd className="mt-0.5 text-lg font-semibold tabular-nums">{ece} pts</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-ink-muted">Brier score</dt>
-            <dd className="mt-0.5 text-lg font-semibold tabular-nums">{brier}</dd>
-          </div>
-          <div className="max-w-xs">
-            <dt className="text-xs text-ink-muted">What those mean</dt>
-            <dd className="mt-0.5 text-xs leading-relaxed text-ink-secondary">
-              Calibration error ignores which direction you err in, so being over and under
-              can&rsquo;t cancel out. Brier rewards being right and punishes being confidently
-              wrong — 0.25 is what you&rsquo;d score by saying 50% to everything.
-            </dd>
-          </div>
+        <dl className="mt-8 flex flex-col gap-6 sm:flex-row sm:gap-10">
+          <Metric
+            label="Calibration error"
+            value={`${ece} pts`}
+            note="Ignores which direction you err in, so being over and under can't cancel out."
+          />
+          <Metric
+            label="Brier score"
+            value={String(brier)}
+            note="Rewards being right, punishes being confidently wrong. 0.25 is what you'd score saying 50% to everything."
+          />
         </dl>
       </header>
 
@@ -193,16 +191,22 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between rounded-xl border border-hairline bg-surface px-6 py-4">
-        <p className="text-sm text-ink-secondary">
+      <Link
+        href="/journal"
+        className="group flex items-center justify-between gap-4 rounded-2xl border border-hairline bg-surface px-6 py-5 transition-colors duration-200 hover:border-hairline-strong"
+      >
+        <span className="text-[14px] text-ink-secondary">
           {openCount > 0
             ? `${openCount} ${openCount === 1 ? "decision is" : "decisions are"} still waiting on an outcome.`
             : "Every decision you've logged has been resolved."}
-        </p>
-        <Link href="/journal" className="text-sm font-medium hover:underline">
-          Open the journal →
-        </Link>
-      </div>
+        </span>
+        <span className="shrink-0 text-[14px] font-medium">
+          Open the journal{" "}
+          <span className="inline-block transition-transform duration-200 group-hover:translate-x-0.5">
+            →
+          </span>
+        </span>
+      </Link>
     </div>
   );
 }

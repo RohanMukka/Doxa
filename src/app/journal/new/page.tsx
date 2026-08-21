@@ -22,12 +22,16 @@ export default async function NewEntryPage({ searchParams }: PageProps<"/journal
   const requested = one(params.resolutionDate);
 
   return (
-    <div className="max-w-xl py-2">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">New entry</h1>
-        <p className="mt-2 text-sm leading-relaxed text-ink-secondary">
-          Write it down before you know how it turns out. Memory rewrites itself once the
-          answer arrives — that&rsquo;s the whole reason this exists.
+    <div className="rise max-w-xl">
+      <header className="border-b border-hairline pb-7">
+        <p className="eyebrow">New entry</p>
+        <h1 className="display mt-4 text-[36px]">
+          Write it down <em>before</em> you know.
+        </h1>
+        <p className="mt-4 text-[15px] leading-relaxed text-ink-secondary">
+          Memory rewrites itself once the answer arrives — you&rsquo;ll remember having been
+          more certain, or less, in whichever direction flatters you. That edit is the whole
+          reason this exists.
         </p>
       </header>
 
