@@ -120,13 +120,19 @@ export function discriminationInterval(
  * The two axes together. Someone can be honest and uninformative, or
  * informative and badly scaled, and those need different advice.
  */
-export type Verdict = "sharp-and-honest" | "informative-but-misscaled" | "honest-but-vague" | "unclear";
+export type Verdict =
+  | "sharp-and-honest"
+  | "informative-but-misscaled"
+  | "honest-but-vague"
+  | "misscaled-and-unproven"
+  /** Nothing to compute from — not the same as having computed and found nothing. */
+  | "no-data";
 
 export function verdict(
   parts: BrierParts | null,
   auc: { auc: number; low: number; high: number } | null
 ): Verdict {
-  if (!parts || !auc) return "unclear";
+  if (!parts || !auc) return "no-data";
 
   // Only claim discrimination when the interval clears chance.
   const discriminates = auc.low > 0.5;
@@ -135,5 +141,10 @@ export function verdict(
   if (discriminates && wellScaled) return "sharp-and-honest";
   if (discriminates) return "informative-but-misscaled";
   if (wellScaled) return "honest-but-vague";
-  return "unclear";
+
+  // Measured, and neither half is in evidence. Distinct from having no data:
+  // telling someone with forty resolved decisions to "keep resolving" reads as
+  // though nothing was measured, when in fact something was and it came back
+  // inconclusive on one axis and unflattering on the other.
+  return "misscaled-and-unproven";
 }

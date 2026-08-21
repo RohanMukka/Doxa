@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { CalibrationChart } from "@/components/calibration-chart";
+import { CalibrationFan } from "@/components/calibration-fan";
+import { SharpnessCard } from "@/components/sharpness-card";
 import { ConsultationSplit } from "@/components/consultation-split";
 import { InsightsPanel } from "@/components/insights-panel";
 import { StarterList } from "@/components/starter-list";
@@ -23,6 +25,8 @@ import {
   mostMiscalibratedCategory,
   splitByConsultation,
 } from "@/lib/calibration";
+import { calibrationBand, fitRecalibration, recalibrate } from "@/lib/recalibration";
+import { decomposeBrier, discriminationInterval, verdict } from "@/lib/discrimination";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +68,14 @@ export default async function DashboardPage() {
   const { solo, consulted } = splitByConsultation(resolved);
   const memory = hindsight(resolved);
   const memorySignificance = hindsightSignificance(resolved);
+
+  const fit = fitRecalibration(resolved);
+  const band = fit ? calibrationBand(fit) : null;
+  const anchors = fit
+    ? [50, 70, 80, 90, 95].map((stated) => ({ stated, ...recalibrate(fit, stated) }))
+    : [];
+  const parts = decomposeBrier(resolved);
+  const auc = discriminationInterval(resolved);
 
   if (resolved.length === 0) {
     return (
@@ -176,9 +188,21 @@ export default async function DashboardPage() {
         <div className="lg:col-span-3">
           <Card
             title="Confidence against reality"
-            caption="A perfectly calibrated person's line would sit on the dashed one. Below it means you were more certain than the outcomes justified."
+            caption="Fitted across the whole scale rather than bucket by bucket, so forty decisions say more than five separate estimates could. The shaded band is what the data actually pins down."
           >
-            <CalibrationChart buckets={buckets} />
+            {band && fit ? (
+              <CalibrationFan
+                band={band}
+                buckets={buckets.map((b) => ({
+                  stated: b.statedConfidence,
+                  actual: b.actualAccuracy,
+                  count: b.count,
+                }))}
+                anchors={anchors}
+              />
+            ) : (
+              <CalibrationChart buckets={buckets} />
+            )}
           </Card>
         </div>
 
@@ -208,6 +232,15 @@ export default async function DashboardPage() {
           </Card>
         </div>
       </div>
+
+      {parts && (
+        <Card
+          title="Honest, or useful"
+          caption="Being well calibrated and being worth listening to are different achievements, and the overall gap can't tell them apart."
+        >
+          <SharpnessCard parts={parts} auc={auc} verdict={verdict(parts, auc)} />
+        </Card>
+      )}
 
       {memory && (
         <Card

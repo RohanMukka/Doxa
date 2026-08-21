@@ -197,7 +197,12 @@ describe("verdict", () => {
     );
   });
 
-  it("says nothing when there is nothing to say", () => {
-    expect(verdict(null, null)).toBe("unclear");
+  it("distinguishes having no data from having measured and found nothing", () => {
+    // Telling someone with forty resolved decisions to "keep resolving" reads
+    // as though nothing was measured. These are different answers.
+    expect(verdict(null, null)).toBe("no-data");
+    expect(verdict(parts(0.15), { auc: 0.55, low: 0.3, high: 0.78 })).toBe(
+      "misscaled-and-unproven"
+    );
   });
 });
