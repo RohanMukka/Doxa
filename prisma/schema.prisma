@@ -80,3 +80,41 @@ model Event {
   @@index([entryId])
   @@index([recordedAt])
 }
+
+/// One tested claim about how this person reasons.
+///
+/// Stored whatever the verdict, including the ones that failed. A feature whose
+/// point is showing which claims survive scrutiny cannot quietly drop the ones
+/// that didn't — that would make it the thing it exists to guard against.
+model Hypothesis {
+  id            String   @id @default(cuid())
+  /// Groups a batch, because false-discovery control is a property of the batch
+  /// rather than of any single claim in it.
+  runId         String
+  /// "swept" — enumerated mechanically from the journal's own shape.
+  /// "model"  — proposed in words by a language model.
+  source        String
+  headline      String
+  evidence      String?
+  tryInstead    String?
+  /// The machine-checkable filter, canonical JSON.
+  predicate     String
+  /// The same filter as a sentence, so a rejected claim can be argued with.
+  predicateText String
+  /// Calibration gap inside the predicate minus the gap outside, on held-out
+  /// decisions only.
+  lift          Float
+  nInside       Int
+  nOutside      Int
+  p             Float
+  /// Benjamini-Hochberg adjusted across the batch.
+  q             Float
+  outcome       String // "held" | "failed" | "untestable"
+  reason        String?
+  trainingN     Int
+  holdoutN      Int
+  createdAt     DateTime @default(now())
+
+  @@index([runId])
+  @@index([createdAt])
+}

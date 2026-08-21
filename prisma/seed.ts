@@ -763,6 +763,25 @@ async function main() {
   console.log(`  chain head ${head}`);
 
   await seedCapturedAnalysis();
+  await seedHypotheses();
+}
+
+/**
+ * Runs the hypothesis sweep so a fresh clone opens on a populated ledger.
+ *
+ * Nothing here is fabricated: the candidates are enumerated from the seeded
+ * journal's own shape and tested against decisions held back from them, by the
+ * same code the app runs. On this journal almost nothing survives, which is the
+ * honest result and the one worth showing.
+ */
+async function seedHypotheses() {
+  await prisma.hypothesis.deleteMany();
+  const { runHypotheses } = await import("../src/lib/hypotheses/run");
+  const ledger = await runHypotheses();
+  console.log(
+    `Tested ${ledger.rows.length} hypotheses on ${ledger.holdoutN} held-out decisions — ` +
+      `${ledger.held} held, ${ledger.failed} failed, ${ledger.untestable} untestable.`
+  );
 }
 
 // If a previous real analysis run was captured (npm run capture:analysis), load

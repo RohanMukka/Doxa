@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { CalibrationChart } from "@/components/calibration-chart";
 import { CalibrationFan } from "@/components/calibration-fan";
 import { SharpnessCard } from "@/components/sharpness-card";
+import { HypothesisLedger } from "@/components/hypothesis-ledger";
 import { ConsultationSplit } from "@/components/consultation-split";
 import { InsightsPanel } from "@/components/insights-panel";
 import { StarterList } from "@/components/starter-list";
@@ -26,6 +27,7 @@ import {
 import { calibrationBand, fitRecalibration, recalibrate } from "@/lib/recalibration";
 import { decomposeBrier, discriminationInterval, verdict } from "@/lib/discrimination";
 import { poolCategories, worstCategory } from "@/lib/pooling";
+import { latestLedger } from "@/lib/hypotheses/run";
 
 export const dynamic = "force-dynamic";
 
@@ -81,6 +83,7 @@ export default async function DashboardPage() {
   const parts = decomposeBrier(resolved);
   const auc = discriminationInterval(resolved);
   const pooled = poolCategories(resolved);
+  const ledger = await latestLedger();
 
   if (resolved.length === 0) {
     return (
@@ -237,6 +240,15 @@ export default async function DashboardPage() {
           </Card>
         </div>
       </div>
+
+      {ledger && (
+        <Card
+          title="What survived being checked"
+          caption="Claims about how you reason, generated from your earlier decisions and then tested against the ones held back from them. Kept whether they held or not."
+        >
+          <HypothesisLedger ledger={ledger} />
+        </Card>
+      )}
 
       {parts && (
         <Card

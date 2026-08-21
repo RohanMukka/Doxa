@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { extractFeatures } from "./features";
-import { PredicateSchema, describe as explain, matches, split, type Subject } from "./predicate";
+import {
+  PredicateSchema,
+  describe as explain,
+  matches,
+  split,
+  type Predicate,
+  type Subject,
+} from "./predicate";
 
 const subject = (over: Partial<Subject> = {}): Subject => ({
   confidence: 80,
@@ -57,7 +64,7 @@ describe("predicates", () => {
   });
 
   it("matches phrases case-insensitively", () => {
-    const p = { field: "reasoningContains", anyOf: ["Thought About This"] } as const;
+    const p: Predicate = { field: "reasoningContains", anyOf: ["Thought About This"] };
     expect(matches(p, subject({ reasoning: "I've thought about this a lot" }))).toBe(true);
   });
 
