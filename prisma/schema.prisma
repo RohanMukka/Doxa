@@ -13,6 +13,13 @@ model Analysis {
   insights       String // JSON array of { headline, evidence, tryInstead }
   entriesAnalyzed Int
   createdAt      DateTime @default(now())
+  /// Which backend produced this read, and whether producing it meant sending
+  /// the journal off this machine. Recorded per run rather than read from
+  /// current config, because config changes and this claim has to stay true
+  /// about the insights actually on screen.
+  backend        String   @default("gemini")
+  model          String   @default("unknown")
+  ranLocally     Boolean  @default(false)
 }
 
 model Entry {

@@ -26,7 +26,20 @@ async function main() {
   const insights = JSON.parse(latest.insights);
   fs.writeFileSync(
     OUT,
-    JSON.stringify({ insights, entriesAnalyzed: latest.entriesAnalyzed }, null, 2) + "\n"
+    JSON.stringify(
+      {
+        insights,
+        entriesAnalyzed: latest.entriesAnalyzed,
+        // Carried through so the seeded panel can say where these came from.
+        // A read produced by a hosted model must not appear on a fresh clone
+        // looking like one that never left the machine.
+        backend: latest.backend,
+        model: latest.model,
+        ranLocally: latest.ranLocally,
+      },
+      null,
+      2
+    ) + "\n"
   );
 
   console.log(

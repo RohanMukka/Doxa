@@ -1,5 +1,6 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { z } from "zod";
+import { geminiBackend } from "@/lib/inference/gemini";
+import type { JsonSchema } from "@/lib/inference/types";
 import { prisma } from "@/lib/prisma";
 import {
   accuracyFor,
@@ -21,34 +22,34 @@ export const InsightsSchema = z.object({ insights: z.array(InsightSchema) });
 
 export type Insight = z.infer<typeof InsightSchema>;
 
-// Mirrors InsightsSchema for the model. Property ordering is declared explicitly
-// because Gemini follows it when generating, and a mismatch against the order
-// described in the prompt tends to produce malformed output.
-const RESPONSE_SCHEMA = {
-  type: Type.OBJECT,
+// Mirrors InsightsSchema for the model. Stated once, in plain JSON Schema, and
+// translated per backend — Gemini wants upper-cased type names, Ollama takes it
+// as-is and constrains decoding to it.
+const RESPONSE_SCHEMA: JsonSchema = {
+  type: "object",
   properties: {
     insights: {
-      type: Type.ARRAY,
+      type: "array",
       items: {
-        type: Type.OBJECT,
+        type: "object",
         properties: {
           headline: {
-            type: Type.STRING,
+            type: "string",
             description:
               "The specific finding, stated as a claim about this person's reasoning. One sentence.",
           },
           evidence: {
-            type: Type.STRING,
+            type: "string",
             description:
               "The numbers and the quoted language from their own entries that support the headline. Two to three sentences.",
           },
           tryInstead: {
-            type: Type.STRING,
-            description: "One concrete change to make on the next decision of this kind. One sentence.",
+            type: "string",
+            description:
+              "One concrete change to make on the next decision of this kind. One sentence.",
           },
         },
         required: ["headline", "evidence", "tryInstead"],
-        propertyOrdering: ["headline", "evidence", "tryInstead"],
       },
     },
   },
@@ -130,10 +131,14 @@ function buildUserPrompt(entries: EntryRow[]) {
   return `PRE-COMPUTED STATISTICS (use these exact numbers):\n${stats}\n\nENTRIES:\n\n${entryLines}`;
 }
 
-export async function generateAnalysis(): Promise<Insight[]> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("GEMINI_API_KEY is not set.");
+export type AnalysisRun = {
+  insights: Insight[];
+  backend: string;
+  model: string;
+  ranLocally: boolean;
+};
 
+export async function generateAnalysis(): Promise<AnalysisRun> {
   const entries = (await prisma.entry.findMany({
     where: { status: "resolved" },
     orderBy: { createdAt: "asc" },
@@ -143,22 +148,23 @@ export async function generateAnalysis(): Promise<Insight[]> {
     throw new Error("Need at least 5 resolved decisions before the pattern analysis means anything.");
   }
 
-  const ai = new GoogleGenAI({ apiKey });
-
-  const response = await ai.models.generateContent({
-    model: process.env.DOXA_MODEL ?? "gemini-3.6-flash",
-    contents: buildUserPrompt(entries),
-    config: {
-      systemInstruction: SYSTEM,
-      responseMimeType: "application/json",
-      responseSchema: RESPONSE_SCHEMA,
-    },
+  const backend = geminiBackend();
+  const text = await backend.generate({
+    system: SYSTEM,
+    prompt: buildUserPrompt(entries),
+    schema: RESPONSE_SCHEMA,
   });
 
-  const text = response.text;
-  if (!text) throw new Error("The model returned an empty response.");
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch {
+    // Smaller local models are likelier to wrap JSON in prose, and a raw
+    // SyntaxError reaching the user says nothing useful.
+    throw new Error("The model's response wasn't valid JSON.");
+  }
 
-  const parsed = InsightsSchema.safeParse(JSON.parse(text));
+  const parsed = InsightsSchema.safeParse(raw);
   if (!parsed.success) {
     throw new Error("The model's response did not match the expected shape.");
   }
@@ -167,10 +173,18 @@ export async function generateAnalysis(): Promise<Insight[]> {
     data: {
       insights: JSON.stringify(parsed.data.insights),
       entriesAnalyzed: entries.length,
+      backend: backend.id,
+      model: backend.model,
+      ranLocally: backend.local,
     },
   });
 
-  return parsed.data.insights;
+  return {
+    insights: parsed.data.insights,
+    backend: backend.label,
+    model: backend.model,
+    ranLocally: backend.local,
+  };
 }
 
 export async function getLatestAnalysis() {
@@ -187,6 +201,9 @@ export async function getLatestAnalysis() {
     insights: JSON.parse(latest.insights) as Insight[],
     entriesAnalyzed: latest.entriesAnalyzed,
     createdAt: latest.createdAt,
+    backend: latest.backend,
+    model: latest.model,
+    ranLocally: latest.ranLocally,
     resolvedSince,
     stale: resolvedSince > 0,
   };

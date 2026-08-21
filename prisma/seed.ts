@@ -788,6 +788,12 @@ async function seedCapturedAnalysis() {
     data: {
       insights: JSON.stringify(captured.insights),
       entriesAnalyzed: captured.entriesAnalyzed ?? (await prisma.entry.count({ where: { status: "resolved" } })),
+      // The committed run was produced by a hosted model. Defaulting to that
+      // rather than to "local" keeps a fresh clone from showing a privacy claim
+      // the captured insights don't support.
+      backend: captured.backend ?? "gemini",
+      model: captured.model ?? "unknown",
+      ranLocally: captured.ranLocally ?? false,
     },
   });
 

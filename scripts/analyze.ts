@@ -9,9 +9,14 @@ import { generateAnalysis } from "../src/lib/analysis";
 
 async function main() {
   const t = Date.now();
-  const insights = await generateAnalysis();
-  console.log(`model: ${process.env.DOXA_MODEL ?? "gemini-3.6-flash"}  (${((Date.now() - t) / 1000).toFixed(1)}s)\n`);
-  insights.forEach((i, n) => {
+  const run = await generateAnalysis();
+
+  console.log(
+    `${run.backend} · ${run.model} · ${run.ranLocally ? "nothing left this machine" : "sent off this machine"}` +
+      `  (${((Date.now() - t) / 1000).toFixed(1)}s)\n`
+  );
+
+  run.insights.forEach((i, n) => {
     console.log(`── ${n + 1} ─────────────────────────────────────────`);
     console.log(`HEADLINE: ${i.headline}\n`);
     console.log(`EVIDENCE: ${i.evidence}\n`);
