@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { geminiBackend } from "@/lib/inference/gemini";
-import type { JsonSchema } from "@/lib/inference/types";
+import {
+  backendFor,
+  chooseBackend,
+  survey,
+  type JsonSchema,
+} from "@/lib/inference";
 import { prisma } from "@/lib/prisma";
 import {
   accuracyFor,
@@ -138,7 +142,13 @@ export type AnalysisRun = {
   ranLocally: boolean;
 };
 
-export async function generateAnalysis(): Promise<AnalysisRun> {
+/**
+ * `cloudConsented` is the whole privacy story in one argument. Nothing in here
+ * decides on your behalf that your journal may leave this machine: without a
+ * yes for this run, the remote backend is unreachable, and the caller gets an
+ * error explaining the choice rather than a quiet fallback.
+ */
+export async function generateAnalysis(cloudConsented = false): Promise<AnalysisRun> {
   const entries = (await prisma.entry.findMany({
     where: { status: "resolved" },
     orderBy: { createdAt: "asc" },
@@ -148,7 +158,10 @@ export async function generateAnalysis(): Promise<AnalysisRun> {
     throw new Error("Need at least 5 resolved decisions before the pattern analysis means anything.");
   }
 
-  const backend = geminiBackend();
+  const choice = chooseBackend(await survey(cloudConsented));
+  if (!choice.ok) throw new Error(choice.error);
+
+  const backend = backendFor(choice.backend);
   const text = await backend.generate({
     system: SYSTEM,
     prompt: buildUserPrompt(entries),

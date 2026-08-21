@@ -8,7 +8,7 @@ import { Card } from "@/components/card";
 import { CategoryBreakdown } from "@/components/category-breakdown";
 import { HindsightCard } from "@/components/hindsight-card";
 import { getLatestAnalysis } from "@/lib/analysis";
-import { runAnalysis } from "@/lib/actions";
+import { inferenceOptions, runAnalysis, runAnalysisOnCloud } from "@/lib/actions";
 import {
   accuracyFor,
   averageConfidence,
@@ -53,6 +53,7 @@ export default async function DashboardPage() {
   });
 
   const analysis = await getLatestAnalysis();
+  const options = await inferenceOptions();
   const buckets = calibrationCurve(resolved);
   const stated = averageConfidence(resolved);
   const actual = accuracyFor(resolved);
@@ -164,7 +165,11 @@ export default async function DashboardPage() {
         entriesAnalyzed={analysis?.entriesAnalyzed ?? null}
         runAt={analysis?.createdAt ?? null}
         resolvedSince={analysis?.resolvedSince ?? 0}
+        ranLocally={analysis?.ranLocally ?? null}
+        backend={analysis?.backend ?? null}
+        options={options}
         action={runAnalysis}
+        cloudAction={runAnalysisOnCloud}
       />
 
       <div className="grid gap-6 lg:grid-cols-5">
@@ -255,7 +260,8 @@ export default async function DashboardPage() {
       </Link>
 
       <p className="text-[12px] text-ink-muted">
-        Everything here lives in a local SQLite file.{" "}
+        Everything here lives in a local SQLite file, hash-chained so an edit to the past
+        is detectable.{" "}
         <a href="/api/export?format=json" className="underline hover:text-ink">
           Export JSON
         </a>{" "}

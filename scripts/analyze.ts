@@ -3,13 +3,18 @@
  * iterate on the prompt without clicking through the UI. The result is saved
  * like any other run, so `npm run capture:analysis` picks it up afterwards.
  *
- *   npm run analyze
+ *   npm run analyze            # runs on a local model
+ *   npm run analyze -- --cloud # sends every resolved entry to Google
  */
 import { generateAnalysis } from "../src/lib/analysis";
 
 async function main() {
+  // Consent is an argument you have to type. There is deliberately no env var
+  // for it: a value you set once and forget is not a decision about this run.
+  const cloud = process.argv.includes("--cloud");
+
   const t = Date.now();
-  const run = await generateAnalysis();
+  const run = await generateAnalysis(cloud);
 
   console.log(
     `${run.backend} · ${run.model} · ${run.ranLocally ? "nothing left this machine" : "sent off this machine"}` +

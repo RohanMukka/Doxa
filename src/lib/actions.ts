@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { generateAnalysis } from "@/lib/analysis";
+import { chooseBackend, survey } from "@/lib/inference";
 import { append } from "@/lib/journal/log";
 import { validateNewEntry, validateResolution } from "@/lib/validation";
 
@@ -143,17 +144,61 @@ export async function revealConfidence(formData: FormData): Promise<void> {
 
 export type AnalysisState = { error?: string };
 
+/**
+ * Runs the read on whatever is available locally. Never reaches the cloud —
+ * if no local model is there, this fails with an explanation rather than
+ * quietly posting the journal to Google.
+ */
 export async function runAnalysis(): Promise<AnalysisState> {
-  if (!process.env.GEMINI_API_KEY) {
-    return { error: "Set GEMINI_API_KEY in .env to run the analysis." };
-  }
+  return run(false);
+}
 
+/**
+ * The same read, with permission to send every resolved entry off this machine.
+ * A separate action rather than a flag, so nothing can reach it by accident and
+ * the button that calls it can say what it does.
+ */
+export async function runAnalysisOnCloud(): Promise<AnalysisState> {
+  return run(true);
+}
+
+async function run(cloudConsented: boolean): Promise<AnalysisState> {
   try {
-    await generateAnalysis();
+    await generateAnalysis(cloudConsented);
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Analysis failed." };
   }
 
   revalidatePath("/");
   return {};
+}
+
+/**
+ * What the dashboard needs to describe the choice honestly before it is made:
+ * whether a local model is there, whether a cloud key exists, and — if the
+ * cloud is the only option — how much of the journal that would send.
+ */
+export async function inferenceOptions() {
+  const availability = await survey(false);
+  const choice = chooseBackend(availability);
+
+  // Stated in the units a person can weigh: how many entries, and how much of
+  // their own writing. "Sends your data to Google" is a phrase people have
+  // learned to scroll past; a character count of your own journal is not.
+  const entries = await prisma.entry.findMany({
+    where: { status: "resolved" },
+    select: { reasoning: true, decision: true, resolutionNote: true },
+  });
+  const characters = entries.reduce(
+    (n, e) => n + e.reasoning.length + e.decision.length + (e.resolutionNote?.length ?? 0),
+    0
+  );
+
+  return {
+    localAvailable: availability.localAvailable,
+    cloudConfigured: availability.cloudConfigured,
+    /** True when the read can run without anything leaving the machine. */
+    localReady: choice.ok && choice.local,
+    exposure: { entries: entries.length, characters },
+  };
 }
