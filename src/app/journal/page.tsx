@@ -62,8 +62,15 @@ function OutcomeBadge({ outcome }: { outcome: string | null }) {
 
 export default async function JournalPage() {
   const entries = await prisma.entry.findMany({ orderBy: { createdAt: "desc" } });
-  const open = entries.filter((e) => e.status === "open");
   const resolved = entries.filter((e) => e.status === "resolved");
+
+  // Anything past the date you said you'd know is the work: an unresolved
+  // journal quietly stops measuring anything.
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999);
+  const allOpen = entries.filter((e) => e.status === "open");
+  const due = allOpen.filter((e) => e.resolutionDate <= endOfToday);
+  const upcoming = allOpen.filter((e) => e.resolutionDate > endOfToday);
 
   if (entries.length === 0) {
     return (
@@ -92,14 +99,24 @@ export default async function JournalPage() {
         <p className="eyebrow">Journal</p>
         <h1 className="display mt-4 text-[40px]">Everything you wrote down first.</h1>
         <p className="mt-4 text-[13px] text-ink-secondary tabular-nums">
-          {entries.length} entries · {open.length} open · {resolved.length} resolved
+          {entries.length} entries · {allOpen.length} open · {resolved.length} resolved
+          {due.length > 0 && (
+            <>
+              {" · "}
+              <span className="font-medium" style={{ color: "var(--critical)" }}>
+                {due.length} ready to resolve
+              </span>
+            </>
+          )}
         </p>
       </header>
 
-      {open.length > 0 && (
+      {due.length > 0 && (
         <section className="space-y-4">
-          <h2 className="eyebrow">Awaiting an outcome</h2>
-          {open.map((entry) => (
+          <h2 className="eyebrow" style={{ color: "var(--critical)" }}>
+            Ready to resolve — you said you&rsquo;d know by now
+          </h2>
+          {due.map((entry) => (
             <article
               key={entry.id}
               className="rounded-2xl border border-hairline bg-surface p-6 shadow-[var(--shadow-card)]"
@@ -115,6 +132,29 @@ export default async function JournalPage() {
                 trailing={`due ${formatDate(entry.resolutionDate)}`}
               />
               <ResolveForm id={entry.id} action={resolveEntry} />
+            </article>
+          ))}
+        </section>
+      )}
+
+      {upcoming.length > 0 && (
+        <section className="space-y-4">
+          <h2 className="eyebrow">Still open</h2>
+          {upcoming.map((entry) => (
+            <article
+              key={entry.id}
+              className="rounded-2xl border border-hairline bg-surface p-6 shadow-[var(--shadow-card)]"
+            >
+              <p className="display text-[19px] leading-snug">{entry.decision}</p>
+              <p className="mt-3 text-[14px] leading-relaxed text-ink-secondary">
+                {entry.reasoning}
+              </p>
+              <Meta
+                confidence={entry.confidence}
+                category={entry.category}
+                consultedOthers={entry.consultedOthers}
+                trailing={`due ${formatDate(entry.resolutionDate)}`}
+              />
             </article>
           ))}
         </section>

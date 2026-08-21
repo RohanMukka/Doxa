@@ -25,6 +25,10 @@ model Entry {
   createdAt      DateTime @default(now())
   resolutionDate DateTime
   status         String   @default("open") // "open" | "resolved"
+  // When the outcome was actually recorded, as distinct from resolutionDate,
+  // which is when you expected to know. Staleness of an analysis is measured
+  // against this.
+  resolvedAt     DateTime?
   outcome        String? // "correct" | "incorrect"
   resolutionNote String?
 }

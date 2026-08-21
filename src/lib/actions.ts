@@ -4,51 +4,33 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { generateAnalysis } from "@/lib/analysis";
+import { validateNewEntry, validateResolution } from "@/lib/validation";
 
 export type FormState = { error?: string };
 
-/**
- * A date input hands back "YYYY-MM-DD". Passing that to `new Date` parses it as
- * UTC midnight, which renders as the previous day for anyone west of UTC — so
- * build the date in local time instead.
- */
-function parseLocalDate(value: string) {
-  const [year, month, day] = value.split("-").map(Number);
-  if (!year || !month || !day) return null;
-  const date = new Date(year, month - 1, day);
-  return Number.isNaN(date.getTime()) ? null : date;
+function refresh() {
+  revalidatePath("/journal");
+  revalidatePath("/");
 }
 
 export async function createEntry(
   _prev: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const decision = String(formData.get("decision") ?? "").trim();
-  const reasoning = String(formData.get("reasoning") ?? "").trim();
-  const rawConfidence = Number(formData.get("confidence"));
-  const category = String(formData.get("category") ?? "").trim() || null;
-  const consultedOthers = formData.get("consultedOthers") === "on";
-  const resolutionDate = parseLocalDate(String(formData.get("resolutionDate") ?? ""));
-
-  if (!decision) return { error: "Write down what you're deciding." };
-  if (!reasoning) return { error: "Write down why — the reasoning is what gets analysed." };
-  if (Number.isNaN(rawConfidence)) return { error: "Pick a confidence level." };
-  if (!resolutionDate) return { error: "Pick a date you'll know the outcome by." };
-
-  await prisma.entry.create({
-    data: {
-      decision,
-      reasoning,
-      confidence: Math.min(100, Math.max(0, Math.round(rawConfidence))),
-      category,
-      consultedOthers,
-      resolutionDate,
-      status: "open",
-    },
+  const result = validateNewEntry({
+    decision: formData.get("decision"),
+    reasoning: formData.get("reasoning"),
+    confidence: formData.get("confidence"),
+    category: formData.get("category"),
+    consultedOthers: formData.get("consultedOthers"),
+    resolutionDate: formData.get("resolutionDate"),
   });
 
-  revalidatePath("/journal");
-  revalidatePath("/");
+  if (!result.ok) return { error: result.error };
+
+  await prisma.entry.create({ data: { ...result.value, status: "open" } });
+
+  refresh();
   redirect("/journal");
 }
 
@@ -56,28 +38,25 @@ export async function resolveEntry(
   _prev: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const id = String(formData.get("id") ?? "");
-  const outcome = String(formData.get("outcome") ?? "");
-  const resolutionNote = String(formData.get("resolutionNote") ?? "").trim() || null;
+  const result = validateResolution({
+    id: formData.get("id"),
+    outcome: formData.get("outcome"),
+    resolutionNote: formData.get("resolutionNote"),
+  });
 
-  if (!id) return { error: "Missing entry." };
-  if (outcome !== "correct" && outcome !== "incorrect") {
-    return { error: "Pick whether it turned out right or wrong." };
-  }
+  if (!result.ok) return { error: result.error };
+  const { id, outcome, resolutionNote } = result.value;
 
   const existing = await prisma.entry.findUnique({ where: { id } });
   if (!existing) return { error: "That entry no longer exists." };
-  if (existing.status === "resolved") {
-    return { error: "That one is already resolved." };
-  }
+  if (existing.status === "resolved") return { error: "That one is already resolved." };
 
   await prisma.entry.update({
     where: { id },
-    data: { status: "resolved", outcome, resolutionNote },
+    data: { status: "resolved", outcome, resolutionNote, resolvedAt: new Date() },
   });
 
-  revalidatePath("/journal");
-  revalidatePath("/");
+  refresh();
   return {};
 }
 

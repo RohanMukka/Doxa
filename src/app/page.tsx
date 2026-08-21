@@ -5,16 +5,19 @@ import { ConsultationSplit } from "@/components/consultation-split";
 import { InsightsPanel } from "@/components/insights-panel";
 import { StarterList } from "@/components/starter-list";
 import { Card } from "@/components/card";
+import { CategoryBreakdown } from "@/components/category-breakdown";
 import { getLatestAnalysis } from "@/lib/analysis";
 import { runAnalysis } from "@/lib/actions";
 import {
   accuracyFor,
   averageConfidence,
   brierScore,
+  byCategory,
   calibrationCurve,
   calibrationGap,
   expectedCalibrationError,
   gapIsMeaningful,
+  mostMiscalibratedCategory,
   splitByConsultation,
 } from "@/lib/calibration";
 
@@ -42,6 +45,9 @@ function Metric({
 export default async function DashboardPage() {
   const resolved = await prisma.entry.findMany({ where: { status: "resolved" } });
   const openCount = await prisma.entry.count({ where: { status: "open" } });
+  const overdueCount = await prisma.entry.count({
+    where: { status: "open", resolutionDate: { lt: new Date() } },
+  });
 
   const analysis = await getLatestAnalysis();
   const buckets = calibrationCurve(resolved);
@@ -151,6 +157,8 @@ export default async function DashboardPage() {
       <InsightsPanel
         insights={analysis?.insights ?? null}
         entriesAnalyzed={analysis?.entriesAnalyzed ?? null}
+        runAt={analysis?.createdAt ?? null}
+        resolvedSince={analysis?.resolvedSince ?? 0}
         action={runAnalysis}
       />
 
@@ -191,14 +199,34 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      <Card
+        title="Where you're off"
+        caption="Miscalibration isn't evenly spread. This is the part you can act on — a weak domain is a different instruction from being weak generally."
+      >
+        <CategoryBreakdown
+          categories={byCategory(resolved)}
+          worst={mostMiscalibratedCategory(resolved)}
+        />
+      </Card>
+
       <Link
         href="/journal"
         className="group flex items-center justify-between gap-4 rounded-2xl border border-hairline bg-surface px-6 py-5 transition-colors duration-200 hover:border-hairline-strong"
       >
         <span className="text-[14px] text-ink-secondary">
-          {openCount > 0
-            ? `${openCount} ${openCount === 1 ? "decision is" : "decisions are"} still waiting on an outcome.`
-            : "Every decision you've logged has been resolved."}
+          {overdueCount > 0 ? (
+            <>
+              <span className="font-medium" style={{ color: "var(--critical)" }}>
+                {overdueCount} {overdueCount === 1 ? "decision is" : "decisions are"} past
+                the date you said you&rsquo;d know.
+              </span>{" "}
+              Resolving {overdueCount === 1 ? "it" : "them"} is what keeps the numbers honest.
+            </>
+          ) : openCount > 0 ? (
+            `${openCount} ${openCount === 1 ? "decision is" : "decisions are"} still waiting on an outcome.`
+          ) : (
+            "Every decision you've logged has been resolved."
+          )}
         </span>
         <span className="shrink-0 text-[14px] font-medium">
           Open the journal{" "}
@@ -207,6 +235,17 @@ export default async function DashboardPage() {
           </span>
         </span>
       </Link>
+
+      <p className="text-[12px] text-ink-muted">
+        Everything here lives in a local SQLite file.{" "}
+        <a href="/api/export?format=json" className="underline hover:text-ink">
+          Export JSON
+        </a>{" "}
+        ·{" "}
+        <a href="/api/export?format=csv" className="underline hover:text-ink">
+          Export CSV
+        </a>
+      </p>
     </div>
   );
 }

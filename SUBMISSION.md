@@ -78,7 +78,15 @@ with someone carry almost the same stated confidence — and land very different
   fortnight and carry it into the decisions that actually matter.
 - **LLM pattern analysis** prompted to cite specific numbers and quote real fragments
   from your entries, because the failure mode for this feature is generic
-  fortune-cookie output.
+  fortune-cookie output. Every figure in the shipped run was checked against the
+  database and matches exactly — the statistics are computed in code and handed to
+  the model, which never counts anything itself.
+- **Per-category calibration**, so the finding is "you're bad at career predictions"
+  rather than "you're bad at predicting". Thin categories show their n and are never
+  ranked.
+- **Stale-analysis detection** — the read knows when decisions have resolved since it
+  last ran, and says so instead of quietly showing an out-of-date answer.
+- **Export** to JSON or CSV, entries plus computed metrics.
 - Accessible by construction: colorblind-safe palette (validated, not eyeballed),
   status never carried by color alone, every chart backed by a table.
 
@@ -90,7 +98,7 @@ with someone carry almost the same stated confidence — and land very different
 - **Recharts** for the calibration curve; hand-rolled SVG/CSS for the dumbbell
 - **Google Gemini API** (`@google/genai`) with a declared response schema,
   re-validated with **Zod** server-side
-- **Vitest** — 31 tests over the calibration maths
+- **Vitest** — 61 tests over the calibration maths, form validation, and the model-response parsing contract
 - Statistics: Wilson score intervals, Brier score, expected calibration error
 
 ### Intended Audience

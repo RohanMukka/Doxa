@@ -29,7 +29,13 @@ of thing you can't tell yourself.
   band actually turned out right, with 95% intervals.
 - **Pattern analysis** — a Gemini pass over every resolved entry that looks for *why* the
   gap is there: the phrases you reach for, the categories where certainty runs ahead of
-  evidence, the situations where you don't check your thinking.
+  evidence, the situations where you don't check your thinking. It carries the timestamp
+  it ran at, and flags itself stale when decisions resolve afterwards.
+- **Per-category calibration** — where you're off, not just whether. Categories below five
+  resolved decisions are shown with their n but never ranked.
+- **Ready to resolve** — anything past the date you said you'd know is surfaced first,
+  because an unresolved journal quietly stops measuring anything.
+- **Export** — every entry plus the computed metrics, as JSON or CSV.
 
 Accuracy statistics are computed in code and handed to the model, so it never has to count
 anything — it works on the reasoning text, which is the part statistics can't see.
@@ -97,8 +103,10 @@ npm run analyze
 npm test
 ```
 
-31 tests over the calibration maths — bucket boundaries, Wilson intervals, Brier score, the
-ECE cancellation case, and the empty-journal paths.
+61 tests. The calibration maths (bucket boundaries, Wilson intervals, Brier score, the ECE
+cancellation case, empty-journal paths), form validation including the UTC date bug and
+impossible dates like `2026-02-31`, and the model-response parsing contract — that last one
+runs without an API key, since malformed output is the failure most likely to reach a user.
 
 ### Shipping the analysis with the repo
 

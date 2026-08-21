@@ -138,6 +138,55 @@ export function expectedCalibrationError(entries: ResolvedEntry[]) {
   return Math.round(weighted / entries.length);
 }
 
+export type CategoryStats = {
+  category: string;
+  count: number;
+  stated: number;
+  actual: number;
+  ece: number;
+  brier: number;
+  /** Too few to draw a conclusion from on its own. */
+  thin: boolean;
+};
+
+/** Below this a category's numbers are shown but explicitly not leaned on. */
+export const THIN_CATEGORY = 5;
+
+/**
+ * Per-category calibration. Global numbers say *whether* you're miscalibrated;
+ * these say *where*, which is the part you can act on — "I'm bad at career
+ * predictions" is a different instruction from "I'm bad at predicting".
+ */
+export function byCategory(entries: ResolvedEntry[]): CategoryStats[] {
+  const groups = new Map<string, ResolvedEntry[]>();
+  for (const e of entries) {
+    const key = e.category?.trim() || "uncategorised";
+    groups.set(key, [...(groups.get(key) ?? []), e]);
+  }
+
+  return [...groups.entries()]
+    .map(([category, rows]) => ({
+      category,
+      count: rows.length,
+      stated: averageConfidence(rows) as number,
+      actual: accuracyFor(rows) as number,
+      ece: expectedCalibrationError(rows) as number,
+      brier: brierScore(rows) as number,
+      thin: rows.length < THIN_CATEGORY,
+    }))
+    .sort((a, b) => b.count - a.count);
+}
+
+/**
+ * The category worth acting on: largest absolute calibration error among those
+ * with enough entries to mean anything. Null when nothing clears the bar.
+ */
+export function mostMiscalibratedCategory(entries: ResolvedEntry[]) {
+  const usable = byCategory(entries).filter((c) => !c.thin);
+  if (usable.length < 2) return null;
+  return usable.reduce((worst, c) => (c.ece > worst.ece ? c : worst));
+}
+
 export function splitByConsultation(entries: ResolvedEntry[]) {
   return {
     solo: entries.filter((e) => !e.consultedOthers),

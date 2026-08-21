@@ -15,7 +15,9 @@ const InsightSchema = z.object({
   tryInstead: z.string(),
 });
 
-const InsightsSchema = z.object({ insights: z.array(InsightSchema) });
+// Exported so the parsing contract can be tested without an API key —
+// malformed model output is the failure mode most likely to reach a user.
+export const InsightsSchema = z.object({ insights: z.array(InsightSchema) });
 
 export type Insight = z.infer<typeof InsightSchema>;
 
@@ -174,9 +176,18 @@ export async function generateAnalysis(): Promise<Insight[]> {
 export async function getLatestAnalysis() {
   const latest = await prisma.analysis.findFirst({ orderBy: { createdAt: "desc" } });
   if (!latest) return null;
+
+  // Anything resolved since the run means these insights no longer describe the
+  // whole journal. Cheaper to say so than to silently show a stale read.
+  const resolvedSince = await prisma.entry.count({
+    where: { status: "resolved", resolvedAt: { gt: latest.createdAt } },
+  });
+
   return {
     insights: JSON.parse(latest.insights) as Insight[],
     entriesAnalyzed: latest.entriesAnalyzed,
     createdAt: latest.createdAt,
+    resolvedSince,
+    stale: resolvedSince > 0,
   };
 }

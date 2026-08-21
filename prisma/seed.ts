@@ -560,6 +560,7 @@ async function main() {
         status: "resolved",
         outcome: e.outcome,
         resolutionNote: e.resolutionNote,
+        resolvedAt: new Date(e.resolutionDate),
       },
     });
   }

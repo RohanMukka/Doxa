@@ -3,10 +3,12 @@ import {
   accuracyFor,
   averageConfidence,
   brierScore,
+  byCategory,
   calibrationCurve,
   calibrationGap,
   expectedCalibrationError,
   gapIsMeaningful,
+  mostMiscalibratedCategory,
   splitByConsultation,
   wilsonInterval,
   type ResolvedEntry,
@@ -220,5 +222,66 @@ describe("splitByConsultation", () => {
     const { solo, consulted } = splitByConsultation([]);
     expect(solo).toEqual([]);
     expect(consulted).toEqual([]);
+  });
+});
+
+describe("byCategory", () => {
+  it("groups, sorts by size, and flags thin categories", () => {
+    const rows: ResolvedEntry[] = [
+      ...entries(90, 6, 3).map((e) => ({ ...e, category: "career" })),
+      ...entries(80, 2, 2).map((e) => ({ ...e, category: "money" })),
+    ];
+    const [first, second] = byCategory(rows);
+
+    expect(first.category).toBe("career");
+    expect(first.count).toBe(6);
+    expect(first.thin).toBe(false);
+    expect(first.stated).toBe(90);
+    expect(first.actual).toBe(50);
+
+    expect(second.category).toBe("money");
+    expect(second.thin).toBe(true);
+  });
+
+  it("buckets uncategorised entries together rather than dropping them", () => {
+    const rows: ResolvedEntry[] = [
+      ...entries(70, 2, 1),
+      ...entries(70, 1, 1).map((e) => ({ ...e, category: "  " })),
+    ];
+    const groups = byCategory(rows);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].category).toBe("uncategorised");
+    expect(groups[0].count).toBe(3);
+  });
+
+  it("returns nothing for an empty journal", () => {
+    expect(byCategory([])).toEqual([]);
+  });
+});
+
+describe("mostMiscalibratedCategory", () => {
+  it("picks the category with the largest calibration error", () => {
+    const rows: ResolvedEntry[] = [
+      // career: said 90, right 33 → badly off
+      ...entries(90, 6, 2).map((e) => ({ ...e, category: "career" })),
+      // money: said 70, right 67 → close
+      ...entries(70, 6, 4).map((e) => ({ ...e, category: "money" })),
+    ];
+    expect(mostMiscalibratedCategory(rows)?.category).toBe("career");
+  });
+
+  it("ignores categories too thin to rank", () => {
+    const rows: ResolvedEntry[] = [
+      // health is wildly off but has only 2 entries — must not be named
+      ...entries(95, 2, 0).map((e) => ({ ...e, category: "health" })),
+      ...entries(90, 6, 2).map((e) => ({ ...e, category: "career" })),
+      ...entries(70, 6, 4).map((e) => ({ ...e, category: "money" })),
+    ];
+    expect(mostMiscalibratedCategory(rows)?.category).toBe("career");
+  });
+
+  it("returns null when fewer than two categories clear the bar", () => {
+    expect(mostMiscalibratedCategory(entries(90, 10, 5))).toBeNull();
+    expect(mostMiscalibratedCategory([])).toBeNull();
   });
 });
