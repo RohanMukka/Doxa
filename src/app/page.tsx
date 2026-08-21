@@ -15,18 +15,17 @@ import {
   accuracyFor,
   averageConfidence,
   brierScore,
-  byCategory,
   calibrationCurve,
   calibrationGap,
   expectedCalibrationError,
   gapIsMeaningful,
   hindsight,
   hindsightSignificance,
-  mostMiscalibratedCategory,
   splitByConsultation,
 } from "@/lib/calibration";
 import { calibrationBand, fitRecalibration, recalibrate } from "@/lib/recalibration";
 import { decomposeBrier, discriminationInterval, verdict } from "@/lib/discrimination";
+import { poolCategories, worstCategory } from "@/lib/pooling";
 
 export const dynamic = "force-dynamic";
 
@@ -76,6 +75,7 @@ export default async function DashboardPage() {
     : [];
   const parts = decomposeBrier(resolved);
   const auc = discriminationInterval(resolved);
+  const pooled = poolCategories(resolved);
 
   if (resolved.length === 0) {
     return (
@@ -255,15 +255,14 @@ export default async function DashboardPage() {
         </Card>
       )}
 
-      <Card
-        title="Where you're off"
-        caption="Miscalibration isn't evenly spread. This is the part you can act on — a weak domain is a different instruction from being weak generally."
-      >
-        <CategoryBreakdown
-          categories={byCategory(resolved)}
-          worst={mostMiscalibratedCategory(resolved)}
-        />
-      </Card>
+      {pooled && (
+        <Card
+          title="Where you're off"
+          caption="Miscalibration isn't evenly spread. This is the part you can act on — a weak domain is a different instruction from being weak generally."
+        >
+          <CategoryBreakdown result={pooled} worst={worstCategory(pooled)} />
+        </Card>
+      )}
 
       <Link
         href="/journal"
