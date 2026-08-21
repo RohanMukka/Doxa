@@ -6,6 +6,7 @@ import { InsightsPanel } from "@/components/insights-panel";
 import { StarterList } from "@/components/starter-list";
 import { Card } from "@/components/card";
 import { CategoryBreakdown } from "@/components/category-breakdown";
+import { HindsightCard } from "@/components/hindsight-card";
 import { getLatestAnalysis } from "@/lib/analysis";
 import { runAnalysis } from "@/lib/actions";
 import {
@@ -17,6 +18,8 @@ import {
   calibrationGap,
   expectedCalibrationError,
   gapIsMeaningful,
+  hindsight,
+  hindsightSignificance,
   mostMiscalibratedCategory,
   splitByConsultation,
 } from "@/lib/calibration";
@@ -58,6 +61,8 @@ export default async function DashboardPage() {
   const brier = brierScore(resolved);
   const solid = gapIsMeaningful(resolved);
   const { solo, consulted } = splitByConsultation(resolved);
+  const memory = hindsight(resolved);
+  const memorySignificance = hindsightSignificance(resolved);
 
   if (resolved.length === 0) {
     return (
@@ -198,6 +203,19 @@ export default async function DashboardPage() {
           </Card>
         </div>
       </div>
+
+      {memory && (
+        <Card
+          title="What you remember saying"
+          caption="At resolution you're asked to recall your own confidence before the stored figure is shown. The gap between the two is the bias the journal exists to defeat — so it gets measured rather than assumed."
+        >
+          <HindsightCard
+            stats={memory}
+            significance={memorySignificance}
+            missingRecall={resolved.length - memory.n}
+          />
+        </Card>
+      )}
 
       <Card
         title="Where you're off"

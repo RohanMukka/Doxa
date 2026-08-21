@@ -208,3 +208,148 @@ export function gapIsMeaningful(entries: ResolvedEntry[]) {
   const halfWidth = (high - low) / 2;
   return Math.abs(gap) > halfWidth;
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Hindsight                                                                  */
+/* -------------------------------------------------------------------------- */
+
+export type RecalledEntry = {
+  confidence: number;
+  recalledConfidence: number | null;
+  recallBlind: boolean | null;
+  outcome: string | null;
+};
+
+/**
+ * Only recalls given without the stored figure in view say anything about
+ * memory. Everything else is a reading test.
+ */
+export function blindRecalls<T extends RecalledEntry>(entries: T[]): T[] {
+  return entries.filter(
+    (e) => e.recallBlind === true && typeof e.recalledConfidence === "number"
+  );
+}
+
+export type HindsightStats = {
+  /** How many resolved decisions carry a usable recall. */
+  n: number;
+  /** Mean (recalled − stated). Positive means memory inflates the certainty. */
+  drift: number;
+  /** Mean absolute error, i.e. how badly the number is remembered at all. */
+  meanAbsError: number;
+  afterCorrect: { n: number; drift: number } | null;
+  afterIncorrect: { n: number; drift: number } | null;
+  /**
+   * The signature of hindsight bias proper: memory bending *towards* whatever
+   * happened. Positive drift after being right plus negative drift after being
+   * wrong both flatter, so the spread between the two groups is the effect —
+   * a symmetric misremembering in one direction is just a bad memory for
+   * numbers, which is a different and far less interesting failure.
+   */
+  outcomeSpread: number | null;
+};
+
+const mean = (xs: number[]) => xs.reduce((a, x) => a + x, 0) / xs.length;
+
+export function hindsight(entries: RecalledEntry[]): HindsightStats | null {
+  const usable = blindRecalls(entries);
+  if (!usable.length) return null;
+
+  const drifts = usable.map((e) => (e.recalledConfidence as number) - e.confidence);
+  const group = (want: string) => {
+    const rows = usable.filter((e) => e.outcome === want);
+    if (!rows.length) return null;
+    return {
+      n: rows.length,
+      drift: Math.round(
+        mean(rows.map((e) => (e.recalledConfidence as number) - e.confidence))
+      ),
+    };
+  };
+
+  const afterCorrect = group("correct");
+  const afterIncorrect = group("incorrect");
+
+  return {
+    n: usable.length,
+    drift: Math.round(mean(drifts)),
+    meanAbsError: Math.round(mean(drifts.map(Math.abs))),
+    afterCorrect,
+    afterIncorrect,
+    outcomeSpread:
+      afterCorrect && afterIncorrect ? afterCorrect.drift - afterIncorrect.drift : null,
+  };
+}
+
+/**
+ * Two-sample permutation test on the outcome spread.
+ *
+ * The honest question about a 9-point spread at n=30 is whether shuffling which
+ * decisions "went well" would produce something that big anyway. So shuffle it,
+ * many times, and count. No distributional assumptions, no appeal to asymptotics
+ * that n=30 hasn't earned, and it costs a millisecond.
+ *
+ * `seed` makes it deterministic, because a p-value that moves every time the
+ * page renders is not a number anyone should act on.
+ */
+export function hindsightSignificance(
+  entries: RecalledEntry[],
+  iterations = 10000,
+  seed = 0x5eed
+): { spread: number; p: number; n: number } | null {
+  const usable = blindRecalls(entries).filter(
+    (e) => e.outcome === "correct" || e.outcome === "incorrect"
+  );
+  const correct = usable.filter((e) => e.outcome === "correct").length;
+  if (correct === 0 || correct === usable.length) return null;
+
+  const drifts = usable.map((e) => (e.recalledConfidence as number) - e.confidence);
+  const labels = usable.map((e) => e.outcome === "correct");
+
+  const spreadOf = (flags: boolean[]) => {
+    let hit = 0;
+    let hitN = 0;
+    let miss = 0;
+    let missN = 0;
+    for (let i = 0; i < flags.length; i++) {
+      if (flags[i]) {
+        hit += drifts[i];
+        hitN++;
+      } else {
+        miss += drifts[i];
+        missN++;
+      }
+    }
+    return hit / hitN - miss / missN;
+  };
+
+  const observed = spreadOf(labels);
+
+  // xorshift32 — deterministic, adequate for shuffling, and small enough to
+  // read. Nothing here needs cryptographic randomness.
+  let state = seed >>> 0 || 1;
+  const next = () => {
+    state ^= state << 13;
+    state ^= state >>> 17;
+    state ^= state << 5;
+    return (state >>> 0) / 0x100000000;
+  };
+
+  const shuffled = [...labels];
+  let atLeastAsExtreme = 0;
+
+  for (let iter = 0; iter < iterations; iter++) {
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(next() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    if (Math.abs(spreadOf(shuffled)) >= Math.abs(observed)) atLeastAsExtreme++;
+  }
+
+  // Add-one on both sides: with 10k shuffles the honest floor is 1/10001, not 0.
+  return {
+    spread: Math.round(observed),
+    p: (atLeastAsExtreme + 1) / (iterations + 1),
+    n: usable.length,
+  };
+}

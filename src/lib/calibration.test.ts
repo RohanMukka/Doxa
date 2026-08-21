@@ -8,6 +8,8 @@ import {
   calibrationGap,
   expectedCalibrationError,
   gapIsMeaningful,
+  hindsight,
+  hindsightSignificance,
   mostMiscalibratedCategory,
   splitByConsultation,
   wilsonInterval,
@@ -283,5 +285,120 @@ describe("mostMiscalibratedCategory", () => {
   it("returns null when fewer than two categories clear the bar", () => {
     expect(mostMiscalibratedCategory(entries(90, 10, 5))).toBeNull();
     expect(mostMiscalibratedCategory([])).toBeNull();
+  });
+});
+
+describe("hindsight", () => {
+  const recall = (
+    confidence: number,
+    recalledConfidence: number | null,
+    outcome: string,
+    recallBlind: boolean | null = true
+  ) => ({ confidence, recalledConfidence, recallBlind, outcome });
+
+  it("ignores recalls taken after the stored figure was revealed", () => {
+    const stats = hindsight([
+      recall(80, 90, "correct", true),
+      recall(80, 95, "correct", false),
+      recall(80, 99, "correct", null),
+    ]);
+    expect(stats!.n).toBe(1);
+  });
+
+  it("ignores entries where no recall was given at all", () => {
+    expect(hindsight([recall(80, null, "correct")])).toBeNull();
+  });
+
+  it("reports drift signed towards inflation", () => {
+    const stats = hindsight([recall(70, 80, "correct"), recall(70, 76, "correct")])!;
+    expect(stats.drift).toBe(8);
+  });
+
+  it("separates misremembering from bending towards the outcome", () => {
+    // Remembering every figure as 10 points higher is a bad memory for numbers,
+    // not hindsight bias: the spread between the outcome groups is zero.
+    const uniform = hindsight([
+      recall(70, 80, "correct"),
+      recall(60, 70, "incorrect"),
+    ])!;
+    expect(uniform.drift).toBe(10);
+    expect(uniform.outcomeSpread).toBe(0);
+
+    const bending = hindsight([
+      recall(70, 80, "correct"),
+      recall(60, 50, "incorrect"),
+    ])!;
+    expect(bending.drift).toBe(0);
+    expect(bending.outcomeSpread).toBe(20);
+  });
+
+  it("measures how badly the number is remembered, direction aside", () => {
+    const stats = hindsight([recall(70, 80, "correct"), recall(70, 60, "incorrect")])!;
+    expect(stats.drift).toBe(0);
+    expect(stats.meanAbsError).toBe(10);
+  });
+});
+
+describe("hindsightSignificance", () => {
+  const rows = (specs: [number, number, string][]) =>
+    specs.map(([confidence, recalledConfidence, outcome]) => ({
+      confidence,
+      recalledConfidence,
+      recallBlind: true,
+      outcome,
+    }));
+
+  it("returns nothing when one outcome group is empty", () => {
+    expect(
+      hindsightSignificance(rows([[70, 80, "correct"], [60, 70, "correct"]]))
+    ).toBeNull();
+  });
+
+  it("is deterministic, so a p-value doesn't move between renders", () => {
+    const data = rows([
+      [70, 85, "correct"], [80, 88, "correct"], [60, 70, "correct"],
+      [90, 80, "incorrect"], [70, 55, "incorrect"], [85, 70, "incorrect"],
+    ]);
+    const a = hindsightSignificance(data);
+    const b = hindsightSignificance(data);
+    expect(a).toEqual(b);
+  });
+
+  it("finds a planted effect that is far too clean to be chance", () => {
+    const data = rows([
+      ...Array.from({ length: 10 }, (_, i) => [70, 90 + (i % 3), "correct"] as [number, number, string]),
+      ...Array.from({ length: 10 }, (_, i) => [70, 50 + (i % 3), "incorrect"] as [number, number, string]),
+    ]);
+    const result = hindsightSignificance(data)!;
+    expect(result.spread).toBeGreaterThan(35);
+    expect(result.p).toBeLessThan(0.01);
+  });
+
+  it("refuses to call an effect when the drift is unrelated to the outcome", () => {
+    // Both groups draw from near-identical drifts, so knowing the outcome tells
+    // you almost nothing about how the confidence was misremembered. Plenty of
+    // scatter, no signal — the case where a naive difference-of-means invites
+    // you to read something into noise.
+    const data = rows([
+      ...([10, -6, 3, -2, 8, -9] as number[]).map(
+        (d) => [70, 70 + d, "correct"] as [number, number, string]
+      ),
+      ...([9, -7, 4, -3, 7, -8] as number[]).map(
+        (d) => [70, 70 + d, "incorrect"] as [number, number, string]
+      ),
+    ]);
+    const result = hindsightSignificance(data)!;
+    expect(Math.abs(result.spread)).toBeLessThan(2);
+    expect(result.p).toBeGreaterThan(0.5);
+  });
+
+  it("never reports a p-value of zero, which no finite shuffle can support", () => {
+    const data = rows([
+      ...Array.from({ length: 12 }, () => [70, 100, "correct"] as [number, number, string]),
+      ...Array.from({ length: 12 }, () => [70, 0, "incorrect"] as [number, number, string]),
+    ]);
+    const result = hindsightSignificance(data, 200)!;
+    expect(result.p).toBeGreaterThan(0);
+    expect(result.p).toBeCloseTo(1 / 201, 5);
   });
 });
