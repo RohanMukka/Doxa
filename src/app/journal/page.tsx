@@ -43,6 +43,26 @@ function Meta({
   );
 }
 
+/**
+ * The criterion, as written in advance. Rendered as a quote rather than a field
+ * because that is what it is — a sentence the person is now being held to.
+ */
+function Falsifier({ text }: { text: string | null }) {
+  if (!text) {
+    return (
+      <p className="mt-3 text-[12px] italic text-ink-muted">
+        No criterion recorded — this entry predates preregistration.
+      </p>
+    );
+  }
+  return (
+    <p className="mt-3 text-[13px] leading-relaxed text-ink-secondary">
+      <span className="eyebrow mr-2 align-middle">Wrong if</span>
+      {text}
+    </p>
+  );
+}
+
 /** Status colors can't carry meaning alone, so the glyph and word do the work. */
 function OutcomeBadge({ outcome }: { outcome: string | null }) {
   const right = outcome === "correct";
@@ -125,6 +145,7 @@ export default async function JournalPage() {
               <p className="mt-3 text-[14px] leading-relaxed text-ink-secondary">
                 {entry.reasoning}
               </p>
+              <Falsifier text={entry.falsifier} />
               <Meta
                 confidence={entry.confidence}
                 category={entry.category}
@@ -149,6 +170,7 @@ export default async function JournalPage() {
               <p className="mt-3 text-[14px] leading-relaxed text-ink-secondary">
                 {entry.reasoning}
               </p>
+              <Falsifier text={entry.falsifier} />
               <Meta
                 confidence={entry.confidence}
                 category={entry.category}
@@ -181,6 +203,7 @@ export default async function JournalPage() {
                     {entry.resolutionNote}
                   </p>
                 )}
+                <Falsifier text={entry.falsifier} />
                 <Meta
                   confidence={entry.confidence}
                   category={entry.category}

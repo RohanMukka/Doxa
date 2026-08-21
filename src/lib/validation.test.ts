@@ -8,6 +8,7 @@ const valid = {
   category: "career",
   consultedOthers: "on",
   resolutionDate: "2026-12-01",
+  falsifier: "I'm still there in a year and wish I'd left.",
 };
 
 describe("parseLocalDate", () => {

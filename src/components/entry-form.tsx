@@ -84,6 +84,24 @@ export function EntryForm({
       </div>
 
       <div className="flex flex-col gap-2">
+        <label htmlFor="falsifier" className="text-[14px] font-medium">
+          What would make this wrong?
+        </label>
+        <p className="-mt-1 text-[12px] leading-relaxed text-ink-muted">
+          Written now, and frozen. If you decide afterwards what counted as being
+          wrong, you will decide it in your own favour — and the entry stops
+          measuring anything.
+        </p>
+        <textarea
+          id="falsifier"
+          name="falsifier"
+          rows={2}
+          placeholder="I'm still in this role in a year and wish I'd left."
+          className={FIELD}
+        />
+      </div>
+
+      <div className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between">
           <label htmlFor="confidence" className="text-[14px] font-medium">
             How confident are you?

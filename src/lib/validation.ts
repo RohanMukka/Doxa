@@ -13,6 +13,7 @@ export type NewEntryInput = {
   category: string | null;
   consultedOthers: boolean;
   resolutionDate: Date;
+  falsifier: string;
 };
 
 /**
@@ -42,15 +43,24 @@ export function validateNewEntry(form: {
   category: unknown;
   consultedOthers: unknown;
   resolutionDate: unknown;
+  falsifier: unknown;
 }): Validated<NewEntryInput> {
   const decision = String(form.decision ?? "").trim();
   const reasoning = String(form.reasoning ?? "").trim();
+  const falsifier = String(form.falsifier ?? "").trim();
   const rawConfidence = Number(form.confidence);
   const resolutionDate = parseLocalDate(String(form.resolutionDate ?? ""));
 
   if (!decision) return { ok: false, error: "Write down what you're deciding." };
   if (!reasoning) {
     return { ok: false, error: "Write down why — the reasoning is what gets analysed." };
+  }
+  if (!falsifier) {
+    return {
+      ok: false,
+      error:
+        "Say what would make this wrong. Deciding that afterwards is how a decision quietly becomes unfalsifiable.",
+    };
   }
   if (!Number.isFinite(rawConfidence)) {
     return { ok: false, error: "Pick a confidence level." };
@@ -68,6 +78,7 @@ export function validateNewEntry(form: {
       category: String(form.category ?? "").trim() || null,
       consultedOthers: form.consultedOthers === "on" || form.consultedOthers === true,
       resolutionDate,
+      falsifier,
     },
   };
 }
