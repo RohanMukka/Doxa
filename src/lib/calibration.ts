@@ -37,8 +37,8 @@ const isCorrect = (e: ResolvedEntry) => e.outcome === "correct";
  * because it stays inside [0,1] and behaves at the small n a personal journal
  * actually produces. Returned in percentage points.
  */
-export function wilsonInterval(successes: number, total: number, z = 1.96) {
-  if (total === 0) return { low: 0, high: 100 };
+export function wilsonBounds(successes: number, total: number, z = 1.96) {
+  if (total === 0) return { low: 0, high: 1 };
 
   const p = successes / total;
   const denominator = 1 + (z * z) / total;
@@ -48,9 +48,15 @@ export function wilsonInterval(successes: number, total: number, z = 1.96) {
     Math.sqrt((p * (1 - p)) / total + (z * z) / (4 * total * total));
 
   return {
-    low: Math.round(Math.max(0, center - margin) * 100),
-    high: Math.round(Math.min(1, center + margin) * 100),
+    low: Math.max(0, center - margin),
+    high: Math.min(1, center + margin),
   };
+}
+
+/** The same interval in percentage points, which is what the chart plots. */
+export function wilsonInterval(successes: number, total: number, z = 1.96) {
+  const { low, high } = wilsonBounds(successes, total, z);
+  return { low: Math.round(low * 100), high: Math.round(high * 100) };
 }
 
 export function calibrationCurve(entries: ResolvedEntry[]): CalibrationBucket[] {
