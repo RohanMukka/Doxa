@@ -11,7 +11,8 @@
     "capture:analysis": "tsx --env-file=.env scripts/capture-analysis.ts",
     "models": "tsx --env-file=.env scripts/list-models.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "analyze": "tsx --env-file=.env scripts/analyze.ts"
   },
   "prisma": {
     "seed": "tsx --env-file=.env prisma/seed.ts"

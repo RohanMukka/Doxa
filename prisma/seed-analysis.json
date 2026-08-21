@@ -1,0 +1,20 @@
+{
+  "insights": [
+    {
+      "headline": "Your certainty is highest exactly where you skip outside input, creating a 33-percentage-point accuracy collapse.",
+      "evidence": "On the 11 decisions rated 85%+ that you reasoned through alone, you were right only 55% of the time, compared to 88% accuracy on the 8 high-confidence decisions you talked through. In your solo entries, statements like 'I've thought about this a lot' and 'I don't need to run this by anyone' consistently act as substitutes for external input rather than evidence of rigorous checking.",
+      "tryInstead": "Require yourself to talk through any decision rated 85% or higher with an outside person before finalizing it."
+    },
+    {
+      "headline": "Career choices are your most miscalibrated domain, where high confidence regularly masks blind spots.",
+      "evidence": "Across 7 career decisions, your average confidence was 84%, yet you were right only 43% of the time. Your reasoning entries show unverified self-assumptions, using phrases like 'I know my own bandwidth' or 'I'm confident I know what I'm worth' right before outcomes that resulted in burnout or under-negotiated compensation.",
+      "tryInstead": "Before making a career decision, commit to checking objective market or workload data rather than relying on internal intuition."
+    },
+    {
+      "headline": "Your peak confidence bucket (85-100%) is significantly less reliable than your moderate confidence bucket (70-84%).",
+      "evidence": "You expected 89% accuracy on the 19 decisions rated 85-100% confidence, but you were right only 68% of the time, whereas you were right 100% of the time on the 5 decisions rated 70-84%. In the top bucket, your entries show you actively brushing off additional checks with language like 'I don't see the point of overcomplicating it' and 'don't need to check the math'.",
+      "tryInstead": "Treat feeling 85%+ certain as a red flag to search for at least one piece of disconfirming evidence before deciding."
+    }
+  ],
+  "entriesAnalyzed": 41
+}

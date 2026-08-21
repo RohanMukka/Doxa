@@ -82,7 +82,14 @@ Free-tier model availability moves around, so if the default model name is rejec
 npm run models   # lists what your key can actually reach
 ```
 
-Then set `DOXA_MODEL` in `.env` to one of them. Flash-class models are the free ones.
+Then set `DOXA_MODEL` in `.env` to one of them. Flash-class models are the free ones — the
+default is `gemini-3.6-flash`, since `gemini-2.5-flash` was retired for new keys.
+
+To run it without the UI:
+
+```bash
+npm run analyze
+```
 
 ## Tests
 
