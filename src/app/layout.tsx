@@ -68,8 +68,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-24 pt-10">{children}</main>
         <footer className="border-t border-hairline">
           <div className="mx-auto max-w-5xl px-6 py-6 text-[13px] text-ink-muted">
-            Doxa keeps everything on this machine. Your decision journal is the most honest
-            thing you&rsquo;ll write about yourself.
+            Your decision journal is the most honest thing you&rsquo;ll write about
+            yourself, so it stays in a file on this machine. The one feature that wants to
+            read all of it at once — the pattern analysis — runs on a local model by
+            default, and can only reach a hosted one if you say so for that run.
           </div>
         </footer>
       </body>

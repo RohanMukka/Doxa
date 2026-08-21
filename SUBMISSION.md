@@ -118,8 +118,9 @@ with someone carry almost the same stated confidence — and land very different
 - **Tailwind CSS 4** for styling; custom design tokens with real dark-mode steps
 - **Prisma 6** + **SQLite** — zero external services, clone and run
 - **Recharts** for the calibration curve; hand-rolled SVG/CSS for the dumbbell
-- **Google Gemini API** (`@google/genai`) with a declared response schema,
-  re-validated with **Zod** server-side
+- **Pluggable inference** — a local model via **Ollama** by default, **Google Gemini**
+  (`@google/genai`) only on explicit per-run consent. One response schema, translated
+  per backend, re-validated with **Zod** server-side
 - **Vitest** — 102 tests over the calibration maths, the hash chain and its
   canonical encoding, every invalid state transition in the projection, form
   validation, and the model-response parsing contract
@@ -135,7 +136,10 @@ explained in plain language on the page.
 
 It is deliberately single-user and local. Your decision journal contains the most
 honest things you'll write about your own life, and that data staying on your machine
-is a feature.
+is a feature — which is why the pattern analysis defaults to a model running on your
+own hardware. If none is there it stops and tells you exactly what going to Google
+would send, rather than falling back quietly. Consent is per run, and every stored
+read is labelled with where it was computed.
 
 ### Known limitations
 

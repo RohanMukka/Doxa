@@ -39,7 +39,7 @@ of thing you can't tell yourself.
   the two groups is what carries the significance test, not the raw average.
 - **Calibration curve** — your stated confidence plotted against how often each confidence
   band actually turned out right, with 95% intervals.
-- **Pattern analysis** — a Gemini pass over every resolved entry that looks for *why* the
+- **Pattern analysis** — a pass over every resolved entry that looks for *why* the
   gap is there: the phrases you reach for, the categories where certainty runs ahead of
   evidence, the situations where you don't check your thinking. It carries the timestamp
   it ran at, and flags itself stale when decisions resolve afterwards.
@@ -82,16 +82,42 @@ time is *good* calibration, and the metrics treat it that way.
 
 ```bash
 npm install
-cp .env.example .env      # then add your GEMINI_API_KEY
+cp .env.example .env
 npx prisma migrate dev    # creates the SQLite database
 npm run seed              # loads the demo journal
 npm run verify            # optional: confirm the seeded log hasn't been touched
 npm run dev
 ```
 
-The key is free from [Google AI Studio](https://aistudio.google.com/apikey) — no credit card.
-
 Open http://localhost:3000.
+
+## Where the analysis runs
+
+Everything except the pattern analysis is arithmetic on a local file. The analysis is the
+one feature that wants to read the whole journal at once — which made the old footer
+("Doxa keeps everything on this machine") false, because it posted every entry to Google.
+
+So a local model is the default:
+
+```bash
+ollama pull llama3.1:8b   # then just use the app
+```
+
+If no local model is reachable, the analysis does **not** quietly fall back. It stops and
+tells you what running it on Google would send — how many entries, how many characters of
+your own reasoning — and lets you decide. Consent is per run and never sticky: even
+`DOXA_INFERENCE="cloud"` asks, because choosing a backend in config is not the same act as
+agreeing to send your journal off the machine. From the command line the flag is something
+you type: `npm run analyze -- --cloud`.
+
+Every stored analysis records which backend produced it and whether it stayed local, and
+the panel says so — including for the run committed to this repo, which was a hosted one.
+
+The trade is real and it is yours to make: an 8B model on a laptop reasons less well over
+forty entries than a hosted frontier model does.
+
+A free Gemini key is available from [Google AI Studio](https://aistudio.google.com/apikey) —
+no credit card. Setting it does not by itself allow anything to be sent.
 
 `npm run seed` loads a year of entries for a fictional user — 41 resolved and 5 open, two of
 them already past the date they said they'd know — so the dashboard has something to measure
@@ -100,8 +126,8 @@ collected**: they exist so the calibration and analysis features can be evaluate
 waiting a year. Every number on screen is computed honestly from them, but it is
 illustrative data. Click **Find my patterns** to run the analysis over it.
 
-Without a `GEMINI_API_KEY` everything works except the pattern analysis, which will tell
-you the key is missing rather than failing silently.
+Without either a local model or a `GEMINI_API_KEY`, everything works except the pattern
+analysis, which says what it needs rather than failing silently.
 
 Free-tier model availability moves around, so if the default model name is rejected:
 
@@ -174,6 +200,9 @@ into the slow decisions that actually matter.
 - **The synthetic recall values are deliberately weak.** Like the rest of the seed they are
   invented, so they were built to produce an inconclusive result rather than a dramatic
   one. Planting an effect and letting the app announce it would demonstrate nothing.
+- **Local inference is weaker.** The privacy-preserving path is also the less capable
+  one. The app is honest about which produced a given read rather than pretending the
+  choice is free.
 - **Appends are serialised in one process.** Computing the next hash means reading the
   current head, so two concurrent writers would chain from the same link. SQLite gives one
   writer per database and the app runs as a single process, which closes the gap here; a
