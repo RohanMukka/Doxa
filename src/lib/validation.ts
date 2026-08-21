@@ -87,19 +87,33 @@ export type ResolutionInput = {
   id: string;
   outcome: "correct" | "incorrect";
   resolutionNote: string | null;
+  recalledConfidence: number | null;
 };
 
 export function validateResolution(form: {
   id: unknown;
   outcome: unknown;
   resolutionNote: unknown;
+  recalledConfidence: unknown;
 }): Validated<ResolutionInput> {
   const id = String(form.id ?? "").trim();
   const outcome = String(form.outcome ?? "");
+  const rawRecalled = form.recalledConfidence;
 
   if (!id) return { ok: false, error: "Missing entry." };
   if (outcome !== "correct" && outcome !== "incorrect") {
     return { ok: false, error: "Pick whether it turned out right or wrong." };
+  }
+
+  // The recall is optional — an entry resolved through the API or an older
+  // client simply has no answer, and a missing measurement is better than a
+  // fabricated one.
+  const recalled =
+    rawRecalled === null || rawRecalled === undefined || rawRecalled === ""
+      ? null
+      : Number(rawRecalled);
+  if (recalled !== null && !Number.isFinite(recalled)) {
+    return { ok: false, error: "That recalled confidence isn't a number." };
   }
 
   return {
@@ -108,6 +122,8 @@ export function validateResolution(form: {
       id,
       outcome,
       resolutionNote: String(form.resolutionNote ?? "").trim() || null,
+      recalledConfidence:
+        recalled === null ? null : Math.min(100, Math.max(0, Math.round(recalled))),
     },
   };
 }

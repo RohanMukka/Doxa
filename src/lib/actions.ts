@@ -62,6 +62,7 @@ export async function resolveEntry(
     id: formData.get("id"),
     outcome: formData.get("outcome"),
     resolutionNote: formData.get("resolutionNote"),
+    recalledConfidence: formData.get("recalledConfidence"),
   });
 
   if (!result.ok) return { error: result.error };
@@ -81,6 +82,63 @@ export async function resolveEntry(
 
   refresh();
   return {};
+}
+
+/**
+ * Records what the person thinks they said, then — and only then — returns what
+ * they actually said.
+ *
+ * The order is the point. The stated confidence never reaches the browser until
+ * the recall is committed to the log, so the answer cannot be read out of the
+ * page and handed back as a memory. Doing this as a round-trip rather than in
+ * client state is the difference between a protocol and a convention.
+ */
+export async function recallConfidence(
+  id: string,
+  recalled: number
+): Promise<{ stated: number } | { error: string }> {
+  if (!Number.isFinite(recalled)) return { error: "That isn't a number." };
+
+  const existing = await prisma.entry.findUnique({ where: { id } });
+  if (!existing) return { error: "That entry no longer exists." };
+  if (existing.status === "resolved") return { error: "That one is already resolved." };
+
+  if (existing.recalledConfidence === null) {
+    await append([
+      {
+        type: "ConfidenceRecalled",
+        entryId: id,
+        payload: {
+          recalledConfidence: Math.min(100, Math.max(0, Math.round(recalled))),
+          // Decided here from the log, never from what the form claims: a client
+          // that lied about having been blind would poison the one statistic
+          // this mechanism exists to produce.
+          blind: existing.confidenceRevealedAt === null,
+        },
+      },
+    ]);
+    refresh();
+  }
+
+  return { stated: existing.confidence };
+}
+
+/**
+ * Unseals the stated confidence on an open decision. Allowed, but recorded:
+ * once you've looked, your later recollection of the number isn't evidence
+ * about your memory any more, and the hindsight statistics drop that entry.
+ */
+export async function revealConfidence(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) return;
+
+  const existing = await prisma.entry.findUnique({ where: { id } });
+  if (!existing || existing.status === "resolved" || existing.confidenceRevealedAt) {
+    return;
+  }
+
+  await append([{ type: "ConfidenceRevealed", entryId: id, payload: {} }]);
+  refresh();
 }
 
 export type AnalysisState = { error?: string };

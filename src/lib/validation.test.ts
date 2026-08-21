@@ -99,7 +99,7 @@ describe("validateNewEntry", () => {
 
 describe("validateResolution", () => {
   it("accepts a correct outcome", () => {
-    const r = validateResolution({ id: "abc", outcome: "correct", resolutionNote: "went fine" });
+    const r = validateResolution({ id: "abc", outcome: "correct", resolutionNote: "went fine", recalledConfidence: null });
     expect(r.ok).toBe(true);
     if (r.ok) {
       expect(r.value.outcome).toBe("correct");
@@ -109,16 +109,18 @@ describe("validateResolution", () => {
 
   it("rejects an outcome outside the two allowed values", () => {
     for (const outcome of ["", "maybe", "CORRECT", "sort of"]) {
-      expect(validateResolution({ id: "abc", outcome, resolutionNote: "" }).ok).toBe(false);
+      expect(
+        validateResolution({ id: "abc", outcome, resolutionNote: "", recalledConfidence: null }).ok
+      ).toBe(false);
     }
   });
 
   it("rejects a missing id", () => {
-    expect(validateResolution({ id: "", outcome: "correct", resolutionNote: "" }).ok).toBe(false);
+    expect(validateResolution({ id: "", outcome: "correct", resolutionNote: "", recalledConfidence: null }).ok).toBe(false);
   });
 
   it("treats an empty note as absent", () => {
-    const r = validateResolution({ id: "abc", outcome: "incorrect", resolutionNote: "  " });
+    const r = validateResolution({ id: "abc", outcome: "incorrect", resolutionNote: "  ", recalledConfidence: null });
     if (r.ok) expect(r.value.resolutionNote).toBeNull();
   });
 });

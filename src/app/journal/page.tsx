@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { resolveEntry } from "@/lib/actions";
+import { recallConfidence, resolveEntry, revealConfidence } from "@/lib/actions";
 import { ResolveForm } from "@/components/resolve-form";
 import { StarterList } from "@/components/starter-list";
 
@@ -10,25 +10,59 @@ function formatDate(d: Date) {
   return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
+/**
+ * The stated confidence on an open decision, or the seal over it.
+ *
+ * While a decision is open the number is deliberately not rendered — seeing it
+ * invites you to re-anchor on it, and it would make the recall question at
+ * resolution meaningless, since the answer would be sitting on the same page.
+ * Unsealing is allowed. It is also recorded, and it costs that entry its place
+ * in the hindsight statistics, which is the honest price rather than a
+ * punishment.
+ */
+function Confidence({ value, entryId }: { value: number | null; entryId?: string }) {
+  if (value !== null) {
+    return (
+      <span
+        className="rounded-full px-2 py-0.5 font-medium tabular-nums"
+        style={{ background: "var(--accent-soft)", color: "var(--accent)" }}
+      >
+        {value}% sure
+      </span>
+    );
+  }
+
+  return (
+    <form action={revealConfidence} className="contents">
+      <input type="hidden" name="id" value={entryId} />
+      <button
+        type="submit"
+        className="rounded-full border border-dashed px-2 py-0.5 font-medium transition-colors duration-200 hover:text-ink"
+        style={{ borderColor: "var(--hairline-strong)" }}
+        title="Recorded when you look, and drops this entry from the hindsight statistics."
+      >
+        confidence sealed &middot; reveal
+      </button>
+    </form>
+  );
+}
+
 function Meta({
   confidence,
+  entryId,
   category,
   consultedOthers,
   trailing,
 }: {
-  confidence: number;
+  confidence: number | null;
+  entryId?: string;
   category: string | null;
   consultedOthers: boolean;
   trailing: string;
 }) {
   return (
     <div className="mt-4 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[12px] text-ink-muted">
-      <span
-        className="rounded-full px-2 py-0.5 font-medium tabular-nums"
-        style={{ background: "var(--accent-soft)", color: "var(--accent)" }}
-      >
-        {confidence}% sure
-      </span>
+      <Confidence value={confidence} entryId={entryId} />
       <span aria-hidden="true">·</span>
       <span>{consultedOthers ? "talked it through" : "reasoned alone"}</span>
       {category && (
@@ -147,12 +181,20 @@ export default async function JournalPage() {
               </p>
               <Falsifier text={entry.falsifier} />
               <Meta
-                confidence={entry.confidence}
+                confidence={entry.confidenceRevealedAt ? entry.confidence : null}
+                entryId={entry.id}
                 category={entry.category}
                 consultedOthers={entry.consultedOthers}
                 trailing={`due ${formatDate(entry.resolutionDate)}`}
               />
-              <ResolveForm id={entry.id} action={resolveEntry} />
+              <ResolveForm
+                id={entry.id}
+                alreadyAnswered={
+                  entry.confidenceRevealedAt !== null || entry.recalledConfidence !== null
+                }
+                action={resolveEntry}
+                recallAction={recallConfidence}
+              />
             </article>
           ))}
         </section>
@@ -172,7 +214,8 @@ export default async function JournalPage() {
               </p>
               <Falsifier text={entry.falsifier} />
               <Meta
-                confidence={entry.confidence}
+                confidence={entry.confidenceRevealedAt ? entry.confidence : null}
+                entryId={entry.id}
                 category={entry.category}
                 consultedOthers={entry.consultedOthers}
                 trailing={`due ${formatDate(entry.resolutionDate)}`}
@@ -210,6 +253,13 @@ export default async function JournalPage() {
                   consultedOthers={entry.consultedOthers}
                   trailing={`resolved ${formatDate(entry.resolutionDate)}`}
                 />
+                {entry.recalledConfidence !== null && (
+                  <p className="mt-2 text-[12px] text-ink-muted">
+                    You remembered saying{" "}
+                    <span className="tabular-nums">{entry.recalledConfidence}%</span>
+                    {entry.recallBlind === false && " (after looking)"}.
+                  </p>
+                )}
               </div>
               <OutcomeBadge outcome={entry.outcome} />
             </div>
