@@ -37,14 +37,19 @@ of thing you can't tell yourself.
   split by how the decision turned out. Remembering more certainty after being right and
   less after being wrong are the same bias in opposite directions, so the spread between
   the two groups is what carries the significance test, not the raw average.
-- **Calibration curve** — your stated confidence plotted against how often each confidence
-  band actually turned out right, with 95% intervals.
+- **Calibration curve** — a fitted model of how your confidence is distorted, drawn as a
+  posterior band. Not five separate bucket estimates, so forty decisions say more.
+- **A recalibration you can act on** — "when you feel 90%, the honest number is 79%",
+  rather than an average gap you can't do anything with.
+- **Honest versus useful** — Murphy's decomposition plus discrimination, because being
+  well calibrated and being worth listening to are different achievements.
 - **Pattern analysis** — a pass over every resolved entry that looks for *why* the
   gap is there: the phrases you reach for, the categories where certainty runs ahead of
   evidence, the situations where you don't check your thinking. It carries the timestamp
   it ran at, and flags itself stale when decisions resolve afterwards.
-- **Per-category calibration** — where you're off, not just whether. Categories below five
-  resolved decisions are shown with their n but never ranked.
+- **Per-category calibration** — where you're off, not just whether. Thin categories are
+  pooled towards your overall accuracy rather than hidden, by an amount fitted from
+  whether the categories differ by more than chance would produce.
 - **Ready to resolve** — anything past the date you said you'd know is surfaced first,
   because an unresolved journal quietly stops measuring anything.
 - **Export** — every entry plus the computed metrics, as JSON or CSV.
@@ -58,6 +63,20 @@ anything — it works on the reasoning text, which is the part statistics can't 
 
 A tool about overconfidence has no business being overconfident, so:
 
+- **The model is fitted, and its uncertainty is drawn.** Stated confidence maps to reality
+  through `sigma(a * logit(p) + b)` — two parameters rather than five loose bucket rates,
+  fitted over a grid so the posterior is exact, deterministic and testable without a
+  sampler. The prior is centred on *perfect calibration* rather than on the population
+  tendency to be overconfident: in a tool about not overclaiming, the prior must not
+  assume the conclusion.
+- **Simulation-based calibration.** The inference is checked by generating journals from
+  known distortions, refitting, and confirming the intervals contain the truth about as
+  often as they claim to. An interval quietly too narrow is the failure nothing else
+  would catch.
+- **No degenerate intervals.** Bootstrapping the AUC collapses to [1, 1] under perfect
+  separation, so four decisions that happened to sort cleanly would read as proven skill.
+  The interval is taken over the comparisons actually available instead, bounded by the
+  smaller outcome group.
 - **Wilson intervals on every bucket.** A confidence band holding three decisions gets an
   error bar covering most of the scale, and renders hollow instead of solid.
 - **Brier score and expected calibration error**, not just a hit rate. ECE is there because
@@ -150,7 +169,7 @@ npm run analyze
 npm test
 ```
 
-102 tests. The calibration maths (bucket boundaries, Wilson intervals, Brier score, the ECE
+161 tests. The calibration maths (bucket boundaries, Wilson intervals, Brier score, the ECE
 cancellation case, empty-journal paths), form validation including the UTC date bug and
 impossible dates like `2026-02-31`, and the model-response parsing contract — that last one
 runs without an API key, since malformed output is the failure most likely to reach a user.
@@ -213,6 +232,8 @@ into the slow decisions that actually matter.
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · Prisma + SQLite · Recharts ·
 Gemini API · Vitest
 
-Statistics: Wilson score intervals, Brier score, expected calibration error, a permutation
-test for the hindsight spread. Integrity: SHA-256 hash chain over canonicalised events,
+Statistics: a grid-fitted Bayesian recalibration model with credible bands, Murphy's
+decomposition of the Brier score, discrimination (AUC) with a non-degenerate interval,
+partial pooling across categories, Wilson score intervals, expected calibration error, and
+a permutation test for the hindsight spread. Integrity: SHA-256 hash chain over canonicalised events,
 with the read model replayed and diffed against it.

@@ -63,12 +63,17 @@ export default async function DashboardPage() {
   const gap = calibrationGap(resolved);
   const ece = expectedCalibrationError(resolved);
   const brier = brierScore(resolved);
-  const solid = gapIsMeaningful(resolved);
+  const fit = fitRecalibration(resolved);
+  // The headline and the fitted curve are two inferences about the same
+  // question, and they must not be able to disagree on one page — a verdict up
+  // top over a chart that says the data can't support it is exactly the
+  // incoherence this product exists to avoid. The fitted model is the stronger
+  // of the two, so it decides; the Wilson check only stands in when there is no
+  // fit to consult.
+  const solid = fit ? !fit.indistinguishableFromCalibrated : gapIsMeaningful(resolved);
   const { solo, consulted } = splitByConsultation(resolved);
   const memory = hindsight(resolved);
   const memorySignificance = hindsightSignificance(resolved);
-
-  const fit = fitRecalibration(resolved);
   const band = fit ? calibrationBand(fit) : null;
   const anchors = fit
     ? [50, 70, 80, 90, 95].map((stated) => ({ stated, ...recalibrate(fit, stated) }))

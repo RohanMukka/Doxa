@@ -79,9 +79,19 @@ with someone carry almost the same stated confidence — and land very different
   between the outcome groups carries the test, not the raw average. Peeking is
   allowed, recorded, and disqualifies that entry from the statistic.
 
-- **Calibration curve** with 95% Wilson intervals, so you can see how much the data
-  actually supports. Buckets with too few decisions render hollow rather than
-  pretending to be findings.
+- **A fitted calibration model, drawn as a posterior band.** Stated confidence maps
+  to reality through `sigma(a * logit(p) + b)` — two parameters instead of five
+  independent bucket rates, so a journal-sized sample says far more. Fitted over a
+  grid: exact, deterministic, and testable without a sampler. It produces the output
+  buckets cannot — "when you feel 90%, the honest number is 79%" — and its prior is
+  centred on perfect calibration rather than on the population tendency to be
+  overconfident, so the app never assumes the finding it is looking for.
+- **Checked by simulation-based calibration.** Generate journals from known
+  distortions, refit, confirm the intervals contain the truth as often as they claim.
+- **Honest and useful are separated.** Murphy's decomposition splits the Brier score
+  into miscalibration, discrimination, and the difficulty of what you chose to
+  predict. Someone who says 60% to everything and is right 60% of the time is
+  perfectly calibrated and useless; the old dashboard congratulated them.
 - **Proper scoring, not just a hit rate.** Brier score and expected calibration error
   sit alongside the headline gap. ECE matters because the intuitive number — mean
   confidence minus accuracy — *cancels*: being overconfident at one end of the scale
@@ -103,9 +113,10 @@ with someone carry almost the same stated confidence — and land very different
   fortune-cookie output. Every figure in the shipped run was checked against the
   database and matches exactly — the statistics are computed in code and handed to
   the model, which never counts anything itself.
-- **Per-category calibration**, so the finding is "you're bad at career predictions"
-  rather than "you're bad at predicting". Thin categories show their n and are never
-  ranked.
+- **Per-category calibration with partial pooling**, so the finding is "you're bad at
+  career predictions" rather than "you're bad at predicting" — and a category of
+  three decisions is pulled towards your overall rate in the open, by a visible
+  amount, rather than shown at 100% and quietly excluded from the ranking.
 - **Stale-analysis detection** — the read knows when decisions have resolved since it
   last ran, and says so instead of quietly showing an out-of-date answer.
 - **Export** to JSON or CSV, entries plus computed metrics.
@@ -121,7 +132,7 @@ with someone carry almost the same stated confidence — and land very different
 - **Pluggable inference** — a local model via **Ollama** by default, **Google Gemini**
   (`@google/genai`) only on explicit per-run consent. One response schema, translated
   per backend, re-validated with **Zod** server-side
-- **Vitest** — 102 tests over the calibration maths, the hash chain and its
+- **Vitest** — 161 tests over the calibration maths, the hash chain and its
   canonical encoding, every invalid state transition in the projection, form
   validation, and the model-response parsing contract
 - Statistics: Wilson score intervals, Brier score, expected calibration error, and a
