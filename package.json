@@ -12,6 +12,7 @@
     "models": "tsx --env-file=.env scripts/list-models.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "verify": "tsx --env-file=.env scripts/verify.ts",
     "analyze": "tsx --env-file=.env scripts/analyze.ts"
   },
   "prisma": {

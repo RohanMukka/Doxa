@@ -25,10 +25,51 @@ model Entry {
   createdAt      DateTime @default(now())
   resolutionDate DateTime
   status         String   @default("open") // "open" | "resolved"
+  /// Preregistered falsification criterion, frozen at creation: what the person
+  /// said, in advance, would count as being wrong. Without this, resolution is
+  /// graded against a memory that the outcome has already edited. Nullable only
+  /// because entries written before preregistration existed have no answer.
+  falsifier      String?
   // When the outcome was actually recorded, as distinct from resolutionDate,
   // which is when you expected to know. Staleness of an analysis is measured
   // against this.
   resolvedAt     DateTime?
   outcome        String? // "correct" | "incorrect"
   resolutionNote String?
+  /// What they *thought* they had said, asked at resolution before the stored
+  /// confidence is shown. The distance between this and `confidence` is
+  /// hindsight bias, measured rather than assumed.
+  recalledConfidence Int?
+  /// Whether that recall was collected without the stated confidence having
+  /// been visible. A recall taken after peeking measures reading, not memory,
+  /// so the hindsight statistics only count the blind ones.
+  recallBlind    Boolean?
+  /// Set the first time the sealed confidence is deliberately revealed while
+  /// the decision is still open. Its presence is what makes `recallBlind` false.
+  confidenceRevealedAt DateTime?
+  /// "self" | "external" — whether the outcome was graded by the person or by
+  /// something outside them. Self-graded accuracy is the number most likely to
+  /// flatter; keeping them separable is the only way to see the difference.
+  adjudication   String?
+}
+
+/// Append-only, hash-chained log. This is the journal's source of truth: `Entry`
+/// is a projection of these events and can be rebuilt from them at any
+/// time. The point is not architectural fashion — the product's whole claim is
+/// that you wrote this down *before* you knew the answer, and a mutable row
+/// cannot support that claim. Each event's hash covers the previous one, so a
+/// silent edit anywhere breaks the chain from that point on.
+model Event {
+  seq        Int      @id @default(autoincrement())
+  type       String
+  entryId    String
+  /// Canonical JSON. Key order is normalised before hashing so the digest is
+  /// reproducible across machines and serialiser versions.
+  payload    String
+  recordedAt DateTime
+  prevHash   String
+  hash       String   @unique
+
+  @@index([entryId])
+  @@index([recordedAt])
 }
