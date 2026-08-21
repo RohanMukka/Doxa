@@ -4,7 +4,8 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { generateAnalysis } from "@/lib/analysis";
+import { generateAnalysis, proposeHypotheses } from "@/lib/analysis";
+import { runHypotheses } from "@/lib/hypotheses/run";
 import { chooseBackend, survey } from "@/lib/inference";
 import { append } from "@/lib/journal/log";
 import { validateNewEntry, validateResolution } from "@/lib/validation";
@@ -167,6 +168,21 @@ async function run(cloudConsented: boolean): Promise<AnalysisState> {
     await generateAnalysis(cloudConsented);
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Analysis failed." };
+  }
+
+  // The prose read and the tested claims are one act from the user's side, but
+  // the hypotheses are proposed from the training window alone. A failure here
+  // shouldn't discard a read that already succeeded, so the ledger falls back to
+  // the mechanical sweep and the run still lands.
+  try {
+    const { candidates } = await proposeHypotheses(cloudConsented);
+    await runHypotheses(candidates);
+  } catch {
+    try {
+      await runHypotheses();
+    } catch {
+      // Too few resolved decisions to hold any back. Nothing to record.
+    }
   }
 
   revalidatePath("/");

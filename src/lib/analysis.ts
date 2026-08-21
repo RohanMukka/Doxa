@@ -5,6 +5,15 @@ import {
   survey,
   type JsonSchema,
 } from "@/lib/inference";
+import {
+  PROPOSAL_RESPONSE_SCHEMA,
+  PROPOSAL_SYSTEM,
+  buildProposalPrompt,
+  parseProposals,
+  toCandidates,
+} from "@/lib/hypotheses/propose";
+import { trainingSplit } from "@/lib/hypotheses/validate";
+import type { Candidate } from "@/lib/hypotheses/enumerate";
 import { prisma } from "@/lib/prisma";
 import {
   accuracyFor,
@@ -135,6 +144,23 @@ function buildUserPrompt(entries: EntryRow[]) {
   return `PRE-COMPUTED STATISTICS (use these exact numbers):\n${stats}\n\nENTRIES:\n\n${entryLines}`;
 }
 
+/** The same figures, for the proposer, computed over the training window only. */
+export function statisticsFor(entries: ResolvedEntry[]): string {
+  const { solo, consulted } = splitByConsultation(entries);
+  const buckets = calibrationCurve(entries).map(
+    (b) => `  ${b.label}: ${b.count} decisions · said ${b.statedConfidence}% · right ${b.actualAccuracy}%`
+  );
+  return [
+    `Overall: ${entries.length} resolved · said ${averageConfidence(entries)}% · right ${accuracyFor(entries)}%`,
+    ``,
+    `By confidence bucket:`,
+    ...buckets,
+    ``,
+    `Reasoned alone: ${solo.length} · said ${averageConfidence(solo)}% · right ${accuracyFor(solo)}%`,
+    `Talked it through: ${consulted.length} · said ${averageConfidence(consulted)}% · right ${accuracyFor(consulted)}%`,
+  ].join("\n");
+}
+
 export type AnalysisRun = {
   insights: Insight[];
   backend: string;
@@ -198,6 +224,48 @@ export async function generateAnalysis(cloudConsented = false): Promise<Analysis
     model: backend.model,
     ranLocally: backend.local,
   };
+}
+
+/**
+ * Asks the model for testable hypotheses, shown only the training window.
+ *
+ * Separate from `generateAnalysis` because the two want different things: the
+ * prose read describes the whole journal, while a hypothesis has to be proposed
+ * in ignorance of the decisions it will be judged on. Showing the proposer the
+ * held-out entries would spend the only thing standing between a pattern and a
+ * coincidence.
+ */
+export async function proposeHypotheses(
+  cloudConsented = false
+): Promise<{ candidates: Candidate[]; discarded: number }> {
+  const entries = (await prisma.entry.findMany({
+    where: { status: "resolved" },
+    orderBy: { createdAt: "asc" },
+  })) as EntryRow[];
+
+  const { training } = trainingSplit(entries);
+  if (training.length < 10) {
+    throw new Error("Not enough earlier decisions to propose anything from yet.");
+  }
+
+  const choice = chooseBackend(await survey(cloudConsented));
+  if (!choice.ok) throw new Error(choice.error);
+  const backend = backendFor(choice.backend);
+
+  const text = await backend.generate({
+    system: PROPOSAL_SYSTEM,
+    prompt: buildProposalPrompt(training, statisticsFor(training)),
+    schema: PROPOSAL_RESPONSE_SCHEMA as JsonSchema,
+  });
+
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch {
+    throw new Error("The model's response wasn't valid JSON.");
+  }
+
+  return toCandidates(parseProposals(raw));
 }
 
 export async function getLatestAnalysis() {

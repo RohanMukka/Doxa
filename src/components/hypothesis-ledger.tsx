@@ -80,6 +80,11 @@ export function HypothesisLedger({ ledger }: { ledger: Ledger }) {
         tested against the{" "}
         <span className="tabular-nums text-ink">{ledger.holdoutN}</span> most recent — which
         they were never shown.{" "}
+        {ledger.rows.some((r) => r.source === "model") ? (
+          <>The model proposed some of these; the rest were swept mechanically from your journal's own shape. Both are judged at the same bar. </>
+        ) : (
+          <>They were swept mechanically from your journal's own shape — running the analysis adds the model's own proposals, judged at the same bar. </>
+        )}
         {ledger.held === 0 ? (
           <>
             <span className="font-medium text-ink">None of them survived.</span> That is the
