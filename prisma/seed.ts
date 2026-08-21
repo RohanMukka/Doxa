@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
-import { PrismaClient } from "../src/generated/prisma/client";
-
-const prisma = new PrismaClient();
+import { createHash } from "node:crypto";
+import { prisma } from "../src/lib/prisma";
+import { append, type NewEvent } from "../src/lib/journal/log";
 
 type SeedEntry = {
   decision: string;
@@ -513,6 +513,30 @@ const bucketE: SeedEntry[] = [
 type OpenSeedEntry = Omit<SeedEntry, "outcome" | "resolutionNote">;
 
 const openEntries: OpenSeedEntry[] = [
+  // Two of these are already past the date they said they'd know. That is
+  // deliberate: an unresolved journal quietly stops measuring anything, so the
+  // app has to open on that state rather than on a tidy one — and the recall
+  // question at resolution is unreachable on a fresh clone if nothing is due.
+  {
+    decision: "Turn down the contract work and keep the evenings free for the side project.",
+    reasoning:
+      "I've thought about this a lot. The money is good but the project only moves when I have real time for it, and I don't need to talk this one through — I know how I work.",
+    confidence: 84,
+    category: "side-project",
+    consultedOthers: false,
+    createdAt: "2026-06-02",
+    resolutionDate: "2026-08-02",
+  },
+  {
+    decision: "Move the weekly team sync to async written updates, after floating it with two teammates.",
+    reasoning:
+      "Both of them said the meeting rarely earns its hour. Reasonably confident this sticks, though I've seen async updates quietly die before.",
+    confidence: 66,
+    category: "career",
+    consultedOthers: true,
+    createdAt: "2026-06-20",
+    resolutionDate: "2026-08-15",
+  },
   {
     decision: "Apply for the internal transfer to the data team without discussing it with my current manager yet.",
     reasoning: "I've thought about this a lot and I'm confident it's the right move. Haven't looped in my manager yet.",
@@ -542,45 +566,201 @@ const openEntries: OpenSeedEntry[] = [
   },
 ];
 
+/**
+ * The date this fictional journal adopted two practices that did not exist when
+ * it was started: writing down a falsification criterion in advance, and being
+ * asked to recall your own confidence before the stored figure is shown.
+ *
+ * Backdating both to the beginning would be tidier and less honest. Adopting a
+ * practice partway through is what actually happens, and it leaves the app
+ * showing the "no criterion recorded" state for the earlier entries — which is
+ * a state real users will spend a long time looking at.
+ */
+const PRACTICE_ADOPTED = "2025-12-01";
+
+/**
+ * Preregistered criteria for the decisions made after that date. Keyed by the
+ * opening of the decision text so the pairing stays obvious when either side is
+ * edited.
+ */
+const FALSIFIERS: [string, string][] = [
+  [
+    "Try a new productivity app",
+    "I'm back in my old notes setup within a month, or I'm still migrating things three weeks from now.",
+  ],
+  [
+    "Sign up for a 10k",
+    "I finish the 10k feeling I'd left a lot in the tank, or I pick up an injury training for it anyway.",
+  ],
+  [
+    "Guess whether a cold outreach email",
+    "No reply of any kind inside two weeks — a one-line brush-off still counts as a reply.",
+  ],
+  [
+    "Switch primary bank",
+    "Anything still pointing at the old account sixty days from now, or a fee I didn't expect in the first two statements.",
+  ],
+  [
+    "Negotiate my own salary bump",
+    "I find out afterwards that the band topped out well above what I asked for.",
+  ],
+  [
+    "Skip renewing a niche subscription",
+    "I go looking for it more than twice before the renewal date would have come round again.",
+  ],
+  [
+    "Switch my retirement contributions",
+    "I have to sell any of it inside eighteen months to make the deposit work.",
+  ],
+  [
+    "Raise a small pre-seed round",
+    "We're raising again inside nine months, or the round takes more than a quarter to close.",
+  ],
+  [
+    "Adjust the side project's pricing tier",
+    "Net revenue is flat or down two months after the change, or churn rises among the users already paying.",
+  ],
+  [
+    "Turn down the contract work",
+    "The side project gets less of my time over these two months than it did before, or I turn down the money and don't ship anything with it.",
+  ],
+  [
+    "Move the weekly team sync",
+    "Written updates stop landing within a month, or we quietly put the meeting back.",
+  ],
+  [
+    "Apply for the internal transfer",
+    "My manager hears about it from someone else before I tell them, or the transfer stalls because I skipped that conversation.",
+  ],
+  [
+    "Increase the side project's ad spend",
+    "Cost per signup rises two weeks running, or payback stretches past four months.",
+  ],
+  [
+    "Start a monthly budget review",
+    "We miss two reviews in a row, or the first one turns into an argument neither of us wants to repeat.",
+  ],
+];
+
+function falsifierFor(decision: string, createdAt: string): string | null {
+  if (createdAt < PRACTICE_ADOPTED) return null;
+  const match = FALSIFIERS.find(([prefix]) => decision.startsWith(prefix));
+  if (!match) {
+    throw new Error(`No preregistered criterion written for: ${decision}`);
+  }
+  return match[1];
+}
+
+/**
+ * Synthetic recalled confidences.
+ *
+ * These are invented, like everything else in this file, so they are built to
+ * be *weak* on purpose. It would be trivial to plant a dramatic hindsight
+ * effect here and let the app announce it, and that would be worthless: the
+ * finding would have been authored rather than found. The drift below is a few
+ * points either way against nine points of noise, which at this sample size
+ * lands inside what chance produces — so the dashboard reports it as
+ * inconclusive, which is the correct behaviour and the thing worth showing.
+ *
+ * Deterministic, so the seeded journal is byte-identical on every machine and
+ * the hash chain can be compared across clones.
+ */
+function recalledConfidence(
+  decision: string,
+  stated: number,
+  outcome: "correct" | "incorrect"
+): number {
+  const digest = createHash("sha256").update(decision).digest();
+  // Irwin-Hall: twelve uniforms summed, minus six, is very close to a standard
+  // normal deviate. Scaled to a standard deviation of nine points, which is
+  // roughly how badly people misremember a number they wrote down months ago.
+  const irwinHall =
+    Array.from({ length: 12 }, (_, i) => digest[i] / 255).reduce((a, u) => a + u, 0) - 6;
+  const noise = irwinHall * 9;
+  const drift = outcome === "correct" ? 3 : -2;
+  return Math.max(0, Math.min(100, Math.round(stated + drift + noise)));
+}
+
 async function main() {
+  // Order matters: Entry rows are a projection of Event, so the log is what
+  // actually gets rebuilt and the table follows from it.
   await prisma.entry.deleteMany();
+  await prisma.event.deleteMany();
 
   const resolved = [...bucketA, ...bucketB, ...bucketC, ...bucketD, ...bucketE];
+  const events: NewEvent[] = [];
+  let id = 0;
+  const nextId = () => `seed-${String(++id).padStart(3, "0")}`;
 
-  for (const e of resolved) {
-    await prisma.entry.create({
-      data: {
+  const isResolved = (e: SeedEntry | OpenSeedEntry): e is SeedEntry => "outcome" in e;
+
+  for (const e of [...resolved, ...openEntries] as (SeedEntry | OpenSeedEntry)[]) {
+    const entryId = nextId();
+    events.push({
+      type: "DecisionMade",
+      entryId,
+      recordedAt: new Date(e.createdAt),
+      payload: {
         decision: e.decision,
         reasoning: e.reasoning,
         confidence: e.confidence,
         category: e.category,
         consultedOthers: e.consultedOthers,
-        createdAt: new Date(e.createdAt),
-        resolutionDate: new Date(e.resolutionDate),
-        status: "resolved",
+        resolutionDate: new Date(e.resolutionDate).toISOString(),
+        falsifier: falsifierFor(e.decision, e.createdAt),
+      },
+    });
+
+    if (!isResolved(e)) continue;
+
+    // The recall question only exists for outcomes recorded after the practice
+    // was adopted — earlier resolutions simply have no answer, and a missing
+    // measurement beats an invented one.
+    const asked = e.resolutionDate >= PRACTICE_ADOPTED;
+    if (asked) {
+      // A minute before the outcome, because that ordering is the evidence: the
+      // log shows the recall was committed while the answer was still sealed.
+      events.push({
+        type: "ConfidenceRecalled",
+        entryId,
+        recordedAt: new Date(new Date(e.resolutionDate).getTime() - 60_000),
+        payload: {
+          recalledConfidence: recalledConfidence(e.decision, e.confidence, e.outcome),
+          blind: true,
+        },
+      });
+    }
+
+    events.push({
+      type: "OutcomeRecorded",
+      entryId,
+      recordedAt: new Date(e.resolutionDate),
+      payload: {
         outcome: e.outcome,
         resolutionNote: e.resolutionNote,
-        resolvedAt: new Date(e.resolutionDate),
+        adjudication: "self",
       },
     });
   }
 
-  for (const e of openEntries) {
-    await prisma.entry.create({
-      data: {
-        decision: e.decision,
-        reasoning: e.reasoning,
-        confidence: e.confidence,
-        category: e.category,
-        consultedOthers: e.consultedOthers,
-        createdAt: new Date(e.createdAt),
-        resolutionDate: new Date(e.resolutionDate),
-        status: "open",
-      },
-    });
-  }
+  // Append in the order the events actually happened, so the chain reads as a
+  // history rather than as the order this file happens to list things in.
+  events.sort((a, b) => (a.recordedAt as Date).getTime() - (b.recordedAt as Date).getTime());
 
-  console.log(`Seeded ${resolved.length} resolved entries and ${openEntries.length} open entries.`);
+  const { head } = await append(events, prisma);
+
+  const withCriteria = events.filter(
+    (e): e is NewEvent<"DecisionMade"> =>
+      e.type === "DecisionMade" && e.payload.falsifier !== null
+  ).length;
+  const withRecall = events.filter((e) => e.type === "ConfidenceRecalled").length;
+
+  console.log(
+    `Seeded ${resolved.length} resolved and ${openEntries.length} open entries ` +
+      `as ${events.length} events.`
+  );
+  console.log(`  ${withCriteria} carry a preregistered criterion, ${withRecall} a recalled confidence.`);
+  console.log(`  chain head ${head}`);
 
   await seedCapturedAnalysis();
 }

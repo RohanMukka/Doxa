@@ -39,10 +39,15 @@ first paragraph is worth more than any feature list.]
 ### How It Works
 
 1. **Log a decision before the outcome.** What you're deciding, your reasoning in
-   your own words, a confidence percentage, and the date you'll know. One checkbox
-   records whether you talked it through with anyone.
-2. **Resolve it later.** When you find out, mark it right or wrong and note what
-   actually happened.
+   your own words, a confidence percentage, the date you'll know, and — required —
+   what would make you wrong. One checkbox records whether you talked it through
+   with anyone. The entry is appended to a hash-chained log, so the claim "I wrote
+   this before I knew" is something the file can demonstrate rather than something
+   you have to be trusted on.
+2. **Resolve it later.** First you're asked to recall the confidence you gave, and
+   the stored figure doesn't reach your browser until that answer is committed to
+   the log. Then you mark it right or wrong against the criterion you froze in
+   advance, and note what actually happened.
 3. **See the calibration.** Decisions get bucketed by stated confidence and plotted
    against how often you were actually right. A perfectly calibrated person's line
    sits on the diagonal; below it, you were more certain than the outcomes justified.
@@ -56,6 +61,23 @@ In the worked example, decisions reasoned through alone and decisions talked thr
 with someone carry almost the same stated confidence — and land very differently.
 
 ### Main Features
+
+- **The journal can prove it wasn't edited.** Entries are events in an append-only
+  SHA-256 chain, and the table the app reads is a projection replayed from it.
+  `npm run verify` catches both attacks: editing a row behind the log's back shows
+  up as projection drift, and editing the event itself breaks the chain at a named
+  sequence number. A product whose entire claim is "you wrote this down first"
+  should be able to show its work.
+- **Preregistered criteria.** You have to write what would make you wrong, before
+  you know. Deciding that afterwards is how a decision quietly becomes
+  unfalsifiable, and it is the exact place motivated reasoning gets in.
+- **Hindsight bias, measured rather than asserted.** The README's opening claim —
+  that memory rewrites itself — is now a number. At resolution you're asked what
+  you think you said before the figure is shown, and the two directions of
+  self-flattery are separated: remembering more certainty after being right and
+  less after being wrong are the same bias with opposite signs, so the spread
+  between the outcome groups carries the test, not the raw average. Peeking is
+  allowed, recorded, and disqualifies that entry from the statistic.
 
 - **Calibration curve** with 95% Wilson intervals, so you can see how much the data
   actually supports. Buckets with too few decisions render hollow rather than
@@ -98,8 +120,11 @@ with someone carry almost the same stated confidence — and land very different
 - **Recharts** for the calibration curve; hand-rolled SVG/CSS for the dumbbell
 - **Google Gemini API** (`@google/genai`) with a declared response schema,
   re-validated with **Zod** server-side
-- **Vitest** — 61 tests over the calibration maths, form validation, and the model-response parsing contract
-- Statistics: Wilson score intervals, Brier score, expected calibration error
+- **Vitest** — 102 tests over the calibration maths, the hash chain and its
+  canonical encoding, every invalid state transition in the projection, form
+  validation, and the model-response parsing contract
+- Statistics: Wilson score intervals, Brier score, expected calibration error, and a
+  10,000-shuffle permutation test for the hindsight spread
 
 ### Intended Audience
 
