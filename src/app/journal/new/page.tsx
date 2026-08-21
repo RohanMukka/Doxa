@@ -1,5 +1,6 @@
 import { createEntry } from "@/lib/actions";
 import { EntryForm } from "@/components/entry-form";
+import { priorsForEntry } from "@/lib/priors-query";
 
 function defaultDate() {
   const d = new Date();
@@ -20,6 +21,7 @@ export default async function NewEntryPage({ searchParams }: PageProps<"/journal
   const decision = one(params.decision);
   const category = one(params.category);
   const requested = one(params.resolutionDate);
+  const priors = await priorsForEntry();
 
   return (
     <div className="rise max-w-xl">
@@ -37,6 +39,7 @@ export default async function NewEntryPage({ searchParams }: PageProps<"/journal
 
       <EntryForm
         action={createEntry}
+        priors={priors}
         defaultDecision={decision}
         defaultCategory={category}
         defaultResolutionDate={DATE_ONLY.test(requested) ? requested : defaultDate()}

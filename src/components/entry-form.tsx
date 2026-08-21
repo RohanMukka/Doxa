@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import type { FormState } from "@/lib/actions";
+import { honestFor, referenceClassFor, type Priors } from "@/lib/priors";
 
 const FIELD =
   "rounded-xl border border-hairline bg-surface px-3.5 py-3 text-[14px] leading-relaxed transition-colors duration-200 placeholder:text-ink-muted focus:border-hairline-strong";
@@ -15,6 +16,78 @@ function describe(v: number) {
   if (v >= 45) return "a coin flip";
   if (v >= 25) return "doubtful";
   return "a long shot";
+}
+
+/**
+ * Your own record, at the moment you are putting a number on something.
+ *
+ * Every other surface in this app reports on decisions already made. This is
+ * the only one that can change one, and it is deliberately quiet: a figure and
+ * a sentence, not a warning. Told you are overconfident you will argue; shown
+ * that you have said 90% nineteen times and been right thirteen, there is
+ * nothing to argue with.
+ */
+function Recalibration({ priors, confidence }: { priors: Priors; confidence: number }) {
+  if (!priors.ready) {
+    return (
+      <p className="mt-3 text-[12px] leading-relaxed text-ink-muted">
+        Once {12 - priors.resolvedCount} more decisions have resolved, this will show what
+        your confidence at this level has actually been worth.
+      </p>
+    );
+  }
+
+  const honest = honestFor(priors.curve, confidence);
+  if (!honest) return null;
+
+  const drift = confidence - honest.median;
+  const notable = Math.abs(drift) >= 4;
+
+  return (
+    <div
+      className="mt-3 rounded-xl px-4 py-3 text-[13px] leading-relaxed"
+      style={{ background: notable ? "var(--critical-wash)" : "var(--accent-soft)" }}
+    >
+      Across {priors.resolvedCount} resolved decisions, the times you have felt about this
+      sure came in at{" "}
+      <span className="font-medium tabular-nums">{Math.round(honest.median)}%</span>
+      <span className="text-ink-muted tabular-nums">
+        {" "}
+        ({Math.round(honest.low)}–{Math.round(honest.high)})
+      </span>
+      .
+      {notable && (
+        <>
+          {" "}
+          {drift > 0 ? (
+            <>
+              That is <span className="font-medium tabular-nums">{Math.round(drift)} points</span>{" "}
+              below what you just said.
+            </>
+          ) : (
+            <>
+              You may be selling yourself short by{" "}
+              <span className="font-medium tabular-nums">{Math.round(-drift)} points</span>.
+            </>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+/** The base rate for decisions like this one, once a category is typed. */
+function ReferenceClass({ priors, category }: { priors: Priors; category: string }) {
+  const match = referenceClassFor(priors.categories, category);
+  if (!match || match.count < 3) return null;
+
+  return (
+    <p className="mt-2 text-[12px] leading-relaxed text-ink-muted">
+      You have logged <span className="tabular-nums">{match.count}</span> {match.category}{" "}
+      decisions. You averaged <span className="tabular-nums">{match.stated}%</span> confident
+      and came in around <span className="tabular-nums">{match.pooled}%</span>.
+    </p>
+  );
 }
 
 function SaveButton() {
@@ -32,17 +105,20 @@ function SaveButton() {
 
 export function EntryForm({
   action,
+  priors,
   defaultResolutionDate,
   defaultDecision = "",
   defaultCategory = "",
 }: {
   action: (prev: FormState, data: FormData) => Promise<FormState>;
+  priors: Priors;
   defaultResolutionDate: string;
   defaultDecision?: string;
   defaultCategory?: string;
 }) {
   const [state, formAction] = useActionState<FormState, FormData>(action, {});
   const [confidence, setConfidence] = useState(70);
+  const [category, setCategory] = useState(defaultCategory);
 
   return (
     <form action={formAction} className="mt-8 space-y-7">
@@ -135,6 +211,8 @@ export function EntryForm({
           <span>50%</span>
           <span>100%</span>
         </div>
+
+        <Recalibration priors={priors} confidence={confidence} />
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
@@ -146,10 +224,12 @@ export function EntryForm({
             type="text"
             id="category"
             name="category"
-            defaultValue={defaultCategory}
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
             placeholder="career, money, health…"
             className={FIELD}
           />
+          <ReferenceClass priors={priors} category={category} />
         </div>
         <div className="flex flex-col gap-2">
           <label htmlFor="resolutionDate" className="text-[14px] font-medium">
