@@ -106,10 +106,20 @@ npm run capture:analysis   # writes prisma/seed-analysis.json from your last run
 model output with no key required. It replays a run that actually happened — the insights
 are never hand-written, and if no run has been captured the panel stays empty and says so.
 
+## The cold-start problem
+
+Calibration needs *resolved* decisions, and the decisions worth journalling take months to
+resolve — so a new journal is dead weight for a year. That's the real adoption problem with
+every decision-journal tool.
+
+Doxa's answer is that calibration is a general habit rather than a per-topic skill: someone
+who says 90% when they mean 70% does it on small predictions too. So the empty state offers
+short-horizon predictions that settle in three to fourteen days — *will I finish the thing I
+keep postponing this week?* — which gives you a real baseline in a fortnight, ready to carry
+into the slow decisions that actually matter.
+
 ## Known limitations
 
-- **Cold start.** Calibration needs resolved decisions and decisions take months to resolve.
-  The seeded journal is a demo affordance, not a fix.
 - **Self-reported resolution.** You grade your own outcomes, which is exactly where motivated
   reasoning lives.
 - **Small samples.** At journal-sized n most findings are directional. The app says so on

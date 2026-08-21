@@ -70,6 +70,12 @@ with someone carry almost the same stated confidence — and land very different
   asserting a number. A tool about overconfidence has no business being overconfident.
 - **Alone vs. talked-through split**, shown as a dumbbell — the distance between what
   you said and what happened, per group.
+- **An answer to the cold start.** Every decision-journal tool has the same adoption
+  problem: calibration needs resolved decisions, and real decisions take months to
+  resolve, so a new journal is useless for a year. Doxa leans on calibration being a
+  general habit rather than a per-topic skill — the empty state offers short-horizon
+  predictions that settle in three to fourteen days, so you build a baseline in a
+  fortnight and carry it into the decisions that actually matter.
 - **LLM pattern analysis** prompted to cite specific numbers and quote real fragments
   from your entries, because the failure mode for this feature is generic
   fortune-cookie output.
@@ -102,12 +108,6 @@ is a feature.
 
 Listing these because I'd rather name them than have them found.
 
-- **Cold start is real.** Calibration needs resolved decisions, and decisions take
-  months to resolve. A new user sees an empty dashboard and has to wait. The repo
-  ships a seeded example journal so the analysis can be evaluated immediately, but
-  that is a demo affordance, not a solution — building a genuine onboarding path
-  (starting with fast-resolving predictions to bootstrap a baseline) is the next
-  real piece of work.
 - **The example journal is synthetic.** The seeded entries are written, not collected.
   They exist so the calibration and analysis features can be judged without waiting a
   year. Every number on screen is computed honestly from that data — but it is

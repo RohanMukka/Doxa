@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { CalibrationChart } from "@/components/calibration-chart";
 import { ConsultationSplit } from "@/components/consultation-split";
 import { InsightsPanel } from "@/components/insights-panel";
+import { StarterList } from "@/components/starter-list";
 import { getLatestAnalysis } from "@/lib/analysis";
 import { runAnalysis } from "@/lib/actions";
 import {
@@ -52,23 +53,26 @@ export default async function DashboardPage() {
 
   if (resolved.length === 0) {
     return (
-      <div className="max-w-lg space-y-4 py-8">
-        <h1 className="text-3xl font-semibold tracking-tight">Nothing to measure yet</h1>
-        <p className="text-sm leading-relaxed text-ink-secondary">
-          Log a few decisions with how confident you are, then come back once you know how
-          they turned out. The gap between those two numbers is the whole point.
-        </p>
-        <Link
-          href="/journal/new"
-          className="inline-block rounded-lg bg-ink px-4 py-2 text-sm font-medium text-page transition-opacity hover:opacity-90"
-        >
-          Write your first entry
-        </Link>
-        {openCount > 0 && (
-          <p className="text-sm text-ink-muted">
-            {openCount} {openCount === 1 ? "entry is" : "entries are"} waiting to be resolved.
+      <div className="space-y-6 py-8">
+        <div className="max-w-lg space-y-4">
+          <h1 className="text-3xl font-semibold tracking-tight">Nothing to measure yet</h1>
+          <p className="text-sm leading-relaxed text-ink-secondary">
+            Calibration needs decisions that have actually resolved. The catch is that the
+            decisions worth journalling take months to settle — so start somewhere faster.
           </p>
-        )}
+          <Link
+            href="/journal/new"
+            className="inline-block rounded-lg bg-ink px-4 py-2 text-sm font-medium text-page transition-opacity hover:opacity-90"
+          >
+            Write your own entry
+          </Link>
+          {openCount > 0 && (
+            <p className="text-sm text-ink-muted">
+              {openCount} {openCount === 1 ? "entry is" : "entries are"} waiting on an outcome.
+            </p>
+          )}
+        </div>
+        <StarterList />
       </div>
     );
   }

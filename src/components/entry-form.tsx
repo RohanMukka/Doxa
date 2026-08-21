@@ -33,9 +33,13 @@ function SaveButton() {
 export function EntryForm({
   action,
   defaultResolutionDate,
+  defaultDecision = "",
+  defaultCategory = "",
 }: {
   action: (prev: FormState, data: FormData) => Promise<FormState>;
   defaultResolutionDate: string;
+  defaultDecision?: string;
+  defaultCategory?: string;
 }) {
   const [state, formAction] = useActionState<FormState, FormData>(action, {});
   const [confidence, setConfidence] = useState(70);
@@ -60,6 +64,7 @@ export function EntryForm({
           id="decision"
           name="decision"
           rows={2}
+          defaultValue={defaultDecision}
           placeholder="Turn down the offer and stay in my current role."
           className={FIELD}
         />
@@ -122,6 +127,7 @@ export function EntryForm({
             type="text"
             id="category"
             name="category"
+            defaultValue={defaultCategory}
             placeholder="career, money, health…"
             className={FIELD}
           />

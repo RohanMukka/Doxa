@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { resolveEntry } from "@/lib/actions";
 import { ResolveForm } from "@/components/resolve-form";
+import { StarterList } from "@/components/starter-list";
 
 export const dynamic = "force-dynamic";
 
@@ -63,18 +64,20 @@ export default async function JournalPage() {
 
   if (entries.length === 0) {
     return (
-      <div className="max-w-lg space-y-4 py-8">
-        <h1 className="text-3xl font-semibold tracking-tight">Your journal is empty</h1>
-        <p className="text-sm leading-relaxed text-ink-secondary">
-          A decision journal only works if you write the entry before you know the answer.
-          Start with something you&rsquo;ll find out about within a month or two.
-        </p>
-        <Link
-          href="/journal/new"
-          className="inline-block rounded-lg bg-ink px-4 py-2 text-sm font-medium text-page transition-opacity hover:opacity-90"
-        >
-          Write your first entry
-        </Link>
+      <div className="space-y-6 py-8">
+        <div className="max-w-lg space-y-4">
+          <h1 className="text-3xl font-semibold tracking-tight">Your journal is empty</h1>
+          <p className="text-sm leading-relaxed text-ink-secondary">
+            A decision journal only works if you write the entry before you know the answer.
+          </p>
+          <Link
+            href="/journal/new"
+            className="inline-block rounded-lg bg-ink px-4 py-2 text-sm font-medium text-page transition-opacity hover:opacity-90"
+          >
+            Write your own entry
+          </Link>
+        </div>
+        <StarterList />
       </div>
     );
   }
