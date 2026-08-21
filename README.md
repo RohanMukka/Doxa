@@ -43,6 +43,9 @@ of thing you can't tell yourself.
   rather than an average gap you can't do anything with.
 - **Honest versus useful** — Murphy's decomposition plus discrimination, because being
   well calibrated and being worth listening to are different achievements.
+- **A ledger of tested claims** — every hypothesis about how you reason, generated from
+  your earlier decisions, scored against the ones held back from them, corrected for
+  multiplicity across the batch, and kept on screen whether it held or not.
 - **Pattern analysis** — a pass over every resolved entry that looks for *why* the
   gap is there: the phrases you reach for, the categories where certainty runs ahead of
   evidence, the situations where you don't check your thinking. It carries the timestamp
@@ -58,6 +61,36 @@ of thing you can't tell yourself.
 
 Accuracy statistics are computed in code and handed to the model, so it never has to count
 anything — it works on the reasoning text, which is the part statistics can't see.
+
+## Hypotheses, not just insights
+
+An insight is prose. "Your certainty is highest exactly where you skip outside input" is
+agreeable and unfalsifiable: nothing checks it, and nothing could.
+
+So a claim now carries a **predicate** — a machine-checkable filter over confidence,
+category, whether it was talked through, phrases in the reasoning, or a computed feature
+of how it was written. That turns it into a claim about a specific subgroup, and a
+subgroup can be checked against decisions the proposer never saw.
+
+The journal splits in time. Claims are generated from the earlier decisions and scored on
+the later ones — time-ordered rather than random, because "this is how you reason" should
+hold for the next decision rather than merely fit the ones in hand. Each is scored by how
+much more overconfident you are inside the subgroup than outside, tested by permutation,
+and then the whole batch goes through Benjamini-Hochberg. Testing enough claims at
+p < 0.05 turns one up by luck, and it would be exactly the one shown as a finding.
+
+Candidates come from two places. A mechanical sweep of the journal's own shape needs no
+key and no model, so the ledger is populated on a fresh clone — and it is the baseline the
+model has to beat, since a sweep like that finds a "significant" subgroup every time. On
+top of that the model proposes claims in words, shown only the training window.
+
+**The failures stay on screen.** A panel that quietly kept its winners would be doing
+exactly what this app exists to catch a person doing.
+
+On the seeded journal, eleven claims are tested against twelve held-out decisions and none
+survive — including the alone-versus-talked-through split that the insights panel above
+presents as a 33-point collapse, which comes back at p = 0.21 out of sample. The dashboard
+contradicts its own headline finding, in public.
 
 ## On not overclaiming
 
@@ -169,7 +202,7 @@ npm run analyze
 npm test
 ```
 
-161 tests. The calibration maths (bucket boundaries, Wilson intervals, Brier score, the ECE
+196 tests. The calibration maths (bucket boundaries, Wilson intervals, Brier score, the ECE
 cancellation case, empty-journal paths), form validation including the UTC date bug and
 impossible dates like `2026-02-31`, and the model-response parsing contract — that last one
 runs without an API key, since malformed output is the failure most likely to reach a user.

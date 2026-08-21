@@ -62,6 +62,18 @@ with someone carry almost the same stated confidence — and land very different
 
 ### Main Features
 
+- **Claims are tested, not asserted.** Every hypothesis about how you reason
+  carries a machine-checkable predicate, is generated from your earlier
+  decisions only, and is scored against the ones held back from it — with a
+  permutation test on the held-out gap and Benjamini-Hochberg across the batch,
+  because testing twenty claims at p < 0.05 turns one up by luck and it would be
+  exactly the one shown as a finding. **The ledger keeps its failures on
+  screen.** On the demo journal, eleven claims are tested and none survive —
+  including the alone-versus-talked-through split the insights panel presents as
+  a 33-point collapse, which comes back at p = 0.21 out of sample. The dashboard
+  contradicts its own headline finding, in public, which is the most useful thing
+  it does.
+
 - **The journal can prove it wasn't edited.** Entries are events in an append-only
   SHA-256 chain, and the table the app reads is a projection replayed from it.
   `npm run verify` catches both attacks: editing a row behind the log's back shows
@@ -132,7 +144,7 @@ with someone carry almost the same stated confidence — and land very different
 - **Pluggable inference** — a local model via **Ollama** by default, **Google Gemini**
   (`@google/genai`) only on explicit per-run consent. One response schema, translated
   per backend, re-validated with **Zod** server-side
-- **Vitest** — 161 tests over the calibration maths, the hash chain and its
+- **Vitest** — 196 tests over the calibration maths, the hash chain and its
   canonical encoding, every invalid state transition in the projection, form
   validation, and the model-response parsing contract
 - Statistics: Wilson score intervals, Brier score, expected calibration error, and a
