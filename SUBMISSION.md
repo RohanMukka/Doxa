@@ -204,8 +204,13 @@ Listing these because I'd rather name them than have them found.
 
 ## Demo Materials
 
-**Demo video — `docs/doxa-demo.webm` (2 min 48 s, 1280×720).** [Upload it and put the
-link here.] A beat sheet and an optional voiceover script are in `docs/demo-video.md`.
+**Demo video — `docs/doxa-demo.webm` (2 min 48 s, 1280×720, dark).** [Upload it and put
+the link here.] A beat sheet and an optional voiceover script are in `docs/demo-video.md`.
+
+**Short cut — `docs/video/doxa-demo-light.webm` (78 s, editorial light theme).** Same
+application, tighter: the headline, the read, the ledger reporting that none of its own
+claims survived testing, the chain breaking in the auditor, and the premortem refusing an
+entry. Use this one if the submission wants something under two minutes.
 
 Screenshots in `docs/screenshots/`.
 

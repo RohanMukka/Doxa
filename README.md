@@ -18,6 +18,10 @@ The video is generated rather than hand-captured: [`scripts/demo-video/record.js
 drives a real browser through the running production build and records the session, so
 nothing in it is mocked. Beat sheet and voiceover script: [`docs/demo-video.md`](docs/demo-video.md).
 
+There is also a **[78-second cut in the editorial light theme](docs/video/doxa-demo-light.webm)**,
+which opens on the headline and ends on the premortem refusing an entry. Shorter, and it
+reads as the paper object the design is after.
+
 ---
 
 ## ⚡ Key Highlights & Architecture
