@@ -144,7 +144,7 @@ async function typeInto(page, locator, text, delay = 26) {
     'A tamper-evident decision journal that measures the gap between how sure you were and how often you were right.',
     'SHA-256 HASH CHAIN &nbsp;·&nbsp; BAYESIAN RECALIBRATION &nbsp;·&nbsp; LOCAL-FIRST'
   ));
-  await wait(5000);
+  await wait(4400);
 
   await card(page, CARD(
     'The problem',
@@ -152,7 +152,7 @@ async function typeInto(page, locator, text, delay = 26) {
     'Once you know the answer, memory quietly rewrites the confidence you had before it — in whichever direction flatters you. You cannot introspect past it, because the evidence you would introspect on is the thing that got edited.',
     ''
   ));
-  await wait(5600);
+  await wait(5000);
   await hideCard(page);
   await wait(900);
 
@@ -162,6 +162,14 @@ async function typeInto(page, locator, text, delay = 26) {
   await scrollY(page, 220, 1800);
   await cap(page, '73% sure on average. Right 63% of the time.', 'Calibration error · 17 pts · Brier 0.225');
   await wait(4000);
+  await hideCap(page);
+
+  // ─────────────────────────────────────────── SCENE 1b · the curve
+  await scrollText(page, 'Confidence against reality', 1800, 90);
+  await cap(page, 'The headline is a claim about a curve, so the curve is right under it.', 'Fitted posterior · 95% credible band');
+  await wait(4000);
+  await cap(page, 'When you say 90%, you are right about 79% of the time.', 'Borrows strength across the scale · narrows where the data is');
+  await wait(4200);
   await hideCap(page);
 
   // ─────────────────────────────────────────── SCENE 2 · the read

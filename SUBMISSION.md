@@ -204,7 +204,7 @@ Listing these because I'd rather name them than have them found.
 
 ## Demo Materials
 
-**Demo video — `docs/doxa-demo.webm` (2 min 48 s, 1280×720, dark).** [Upload it and put
+**Demo video — `docs/doxa-demo.mp4` (2 min 57 s, 1280×720, narrated).** [Upload it and put
 the link here.] A beat sheet and an optional voiceover script are in `docs/demo-video.md`.
 
 **Short cut — `docs/video/doxa-demo-light.webm` (78 s, editorial light theme).** Same

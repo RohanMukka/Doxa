@@ -1,0 +1,98 @@
+[
+  [
+    6.6,
+    "Once you know how something turned out, you stop remembering how sure you were."
+  ],
+  [
+    12.4,
+    "Forty one decisions here, each written down before the outcome was known."
+  ],
+  [
+    17.8,
+    "On average I said seventy three percent. I was right sixty three percent of the time."
+  ],
+  [
+    23.7,
+    "The headline claims a curve, so here is the curve."
+  ],
+  [
+    27.7,
+    "When I say ninety percent, I am right about seventy nine percent of the time."
+  ],
+  [
+    33.9,
+    "This reads the entries themselves. The words, not the numbers."
+  ],
+  [
+    39.0,
+    "My certainty is highest exactly where I skip outside input."
+  ],
+  [
+    45.5,
+    "So, a new decision. The reasoning, and what would make me wrong, frozen now."
+  ],
+  [
+    53.0,
+    "Written before I have any incentive to move the goalposts."
+  ],
+  [
+    64.4,
+    "The slider warms from green, to amber, to red, as certainty climbs."
+  ],
+  [
+    71.3,
+    "Past eighty five percent, Doxa refuses to simply take the entry."
+  ],
+  [
+    78.9,
+    "It finds a decision where I was this certain, and wrong, and quotes the exact phrase it recognised."
+  ],
+  [
+    87.5,
+    "I can defend it, proceed anyway, or take my own empirical median. Eighty one, not ninety two."
+  ],
+  [
+    95.5,
+    "Either way it is appended to a hash chain, and cannot be quietly edited afterwards."
+  ],
+  [
+    102.2,
+    "The sandbox asks the counterfactual. What if I had been less sure on the ones I made alone?"
+  ],
+  [
+    110.0,
+    "Brier score and calibration, recomputed live, in the browser."
+  ],
+  [
+    118.9,
+    "The credible band moves with it. No server round trip."
+  ],
+  [
+    124.6,
+    "Every event is hashed, and chained to the one before it."
+  ],
+  [
+    130.3,
+    "Your browser verifies the whole chain with Web Crypto. You do not take my word for it."
+  ],
+  [
+    143.2,
+    "So let us forge the record. Go back, and flip an outcome I got wrong."
+  ],
+  [
+    153.0,
+    "The chain breaks at the mutated block, and at every block after it."
+  ],
+  [
+    159.0,
+    "Hindsight forgery is detectable, not merely discouraged."
+  ],
+  [
+    166.9,
+    "Which makes, I wrote this down beforehand, something the file can prove."
+  ],
+  [
+    171.9,
+    "Doxa. Stop trusting the version of you that already knows the answer."
+  ]
+]

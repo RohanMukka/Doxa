@@ -1,107 +1,68 @@
 # Demo video
 
-**File:** [`docs/doxa-demo.webm`](./doxa-demo.webm) — 1280×720, 2 min 48 s, silent.
+**File:** [`docs/doxa-demo.mp4`](./doxa-demo.mp4) — 1280×720, 2 min 57 s, narrated.
 
 The cut is a real browser driving a real build: production Next.js server, the seeded
 41-resolved / 6-open journal, and the actual SHA-256 chain. Nothing in it is mocked or
-edited in afterwards. On-screen captions carry the argument, so the video works with
-the sound off — the voiceover below is optional and additive.
+edited in afterwards. On-screen captions carry the argument, so it also works with the
+sound off.
 
-## What it shows, in order
+There is a shorter [78-second cut in the editorial light theme](./video/doxa-demo-light.webm),
+silent, if the submission wants something under two minutes.
+
+## Beat sheet
+
+Times are exact — `record.js` logs them as it records.
 
 | Time | Beat |
 |------|------|
-| 0:00 | Title card |
-| 0:05 | The problem: you do not remember how sure you were |
-| 0:13 | Dashboard — 41 decisions, 73% stated confidence against 63% accuracy, 17 pts calibration error, Brier 0.225 |
-| 0:23 | The read — the pattern the model found in the reasoning text, not the numbers |
-| 0:36 | Logging a decision: what you're deciding, why, and what would make you wrong |
-| 0:55 | The confidence slider dragged past the 85% threshold |
-| 1:05 | The adversarial interrogation — historical failure analogue, the exact phrase quoted back, recalibrate to the empirical median |
-| 1:22 | The entry lands in the journal, appended to the chain |
-| 1:36 | Counterfactual sandbox — a hypothetical −14% shift, Brier and Murphy decomposition recomputed live, credible band morphing |
-| 1:57 | The SHA-256 audit trail — 119 blocks, SEALED, verified client-side with Web Crypto |
-| 2:15 | Tamper simulator: an outcome flipped in SQLite, the chain breaking at the mutated block |
-| 2:40 | Restored — 100% sealed |
-| 2:45 | Close card |
+| 0:02 | Title card |
+| 0:06 | The problem: you do not remember how sure you were |
+| 0:12 | Dashboard — 41 decisions written down before the outcome was known |
+| 0:17 | 73% stated confidence against 63% accuracy · 17 pts calibration error · Brier 0.225 |
+| 0:23 | The calibration curve: fitted posterior with its 95% credible band |
+| 0:27 | The anchor table — say 90%, right about 79% of the time |
+| 0:33 | The read — the pattern found in the reasoning text rather than the numbers |
+| 0:39 | "Your certainty is highest exactly where you skip outside input" |
+| 0:45 | Logging a decision: the reasoning, and what would make it wrong, frozen now |
+| 1:04 | The confidence slider crossing the 85% threshold |
+| 1:11 | Doxa refuses to take the entry |
+| 1:18 | The interrogation: a historical failure analogue at the same certainty |
+| 1:23 | The exact phrase quoted back out of what was just typed |
+| 1:27 | Defend, proceed, or take the empirical median |
+| 1:35 | The entry lands in the journal, appended to the chain |
+| 1:41 | Counterfactual sandbox — a hypothetical shift on the decisions made alone |
+| 1:53 | Brier, miscalibration and discrimination recomputed live |
+| 1:58 | The credible band morphing with the shift |
+| 2:04 | The SHA-256 audit trail — 119 blocks, SEALED, verified client-side |
+| 2:17 | Block detail: pre-image, previous hash, payload digest |
+| 2:22 | Tamper simulator — an outcome flipped in SQLite |
+| 2:32 | The chain breaking at the mutated block, and every block after it |
+| 2:47 | Restored — 100% sealed |
+| 2:51 | Close card |
 
-## Voiceover script
+## Narration
 
-Roughly 150 wpm. Every line is optional; the captions already say the essential thing.
-Leave the pauses — the interrogation modal and the broken chain both want a beat of
-silence to land.
+The voiceover is synthesised offline (Festival's HTS voice) and cut to the beats above
+rather than read over them — see [`scripts/demo-video/narrate.py`](../scripts/demo-video/narrate.py)
+and [`narration.json`](../scripts/demo-video/narration.json), which holds each line with
+the second it should land on.
 
-**0:00–0:11 — title and problem cards**
-> Once you know how something turned out, you stop being able to remember how sure you
-> were before it. Memory edits the number, quietly, in whichever direction flatters you.
-
-**0:13–0:23 — dashboard**
-> This is forty-one decisions, each written down before the outcome was known. On
-> average I said I was seventy-three percent sure. I was right sixty-three percent of
-> the time.
-
-*(beat)*
-
-> And notice what the app refuses to do with that. At this sample size it says the gap
-> is still inside what chance would produce. A tool about overconfidence has no business
-> being overconfident.
-
-**0:23–0:36 — the read**
-> This part reads the entries themselves — the words, not the numbers — and looks for
-> what the miscalibration correlates with. It found that my certainty is highest exactly
-> where I skip outside input. A thirty-three point accuracy collapse.
-
-**0:36–0:55 — logging a decision**
-> So here's a new one. The decision, my actual reasoning, and — required — what would
-> make me wrong, written now and frozen, before I have any incentive to move it.
-
-**0:55–1:05 — the slider**
-> The slider warms from green to amber to red as certainty climbs. At eighty-five
-> percent, something happens.
-
-**1:05–1:22 — the interrogation**
-> Doxa refuses to just take the entry. It goes back through the resolved journal, finds
-> a decision where I was this certain and wrong, and quotes the exact phrase in what I
-> just wrote that it recognised.
-
-*(beat — let the modal read)*
-
-> I can defend the stance, and the defence gets stored as a preregistered premortem. I
-> can proceed anyway. Or I can take my own empirical median — eighty-one, not
-> ninety-two.
-
-**1:22–1:36 — the journal**
-> Either way it's appended to a hash chain, and it cannot be quietly edited afterwards.
-
-**1:36–1:57 — the sandbox**
-> The sandbox asks the counterfactual. What if I'd deflated the decisions I made alone
-> by fourteen points? Brier score, miscalibration, discrimination — all recomputed in
-> the browser, sixty frames a second, and the ninety-five percent credible band moves
-> with it.
-
-**1:57–2:15 — the audit trail**
-> Every decision, every confidence recall, every resolution is one hashed event, chained
-> to the one before it. Your browser verifies the whole chain with Web Crypto — you
-> don't take my word for it.
-
-**2:15–2:40 — the tamper simulator**
-> So let's forge the record. Go back and flip an outcome I got wrong.
-
-*(beat)*
-
-> The chain breaks at the mutated block, and at every block after it. Hindsight
-> forgery is detectable, not merely discouraged.
-
-**2:40–2:48 — restore and close**
-> Which makes "I wrote this down beforehand" something the file can prove.
-
-## Re-recording it
-
-The video is generated, not hand-captured — see [`scripts/demo-video/`](../scripts/demo-video).
-Reproduce it with:
+To replace it with a human read, the lines in `narration.json` are the script, and their
+cue times are the timings to hit. Record against the silent cut and mux:
 
 ```bash
-npm run build && npx next start -p 3000   # a fresh terminal
-npm run seed                              # reset the journal to the demo dataset
-node scripts/demo-video/record.js         # writes a .webm next to the script
+ffmpeg -i silent.mp4 -i your-voice.wav -c:v copy -c:a aac -shortest narrated.mp4
 ```
+
+## Re-recording
+
+```bash
+npm run build && npx next start -p 3000   # in another terminal
+npm run seed                              # reset the journal to the demo dataset
+node scripts/demo-video/record.js         # writes the webm and timeline.json
+python3 scripts/demo-video/narrate.py scripts/demo-video/out/*.webm docs/doxa-demo.mp4
+```
+
+Re-seed before every take: the run appends a decision through the entry form, so a second
+recording against the same database starts from a chain one block longer.
