@@ -1,10 +1,22 @@
-﻿# Doxa
+# Doxa
 
 > **A mathematically rigorous, tamper-evident decision journal that measures cognitive bias, red-teams overconfidence, and recalibrates your intuition.**
 
 You log a decision *before* you know how it turns out — what you're deciding, your actual reasoning, how confident you are, and what would make you wrong. Later you record what happened. Once enough decisions have resolved, Doxa reads back across all of them and tells you where your certainty and your accuracy come apart.
 
 The journal is an append-only, cryptographic **SHA-256 hash-chained log**, so *"I wrote this down beforehand"* is mathematically demonstrable rather than taken on trust.
+
+---
+
+## 🎬 Demo
+
+**[Watch the 2-minute demo →](docs/doxa-demo.webm)** — the dashboard, the adversarial
+interrogation firing at 92% confidence, the counterfactual sandbox, and the hash chain
+breaking under a simulated tamper.
+
+The video is generated rather than hand-captured: [`scripts/demo-video/record.js`](scripts/demo-video)
+drives a real browser through the running production build and records the session, so
+nothing in it is mocked. Beat sheet and voiceover script: [`docs/demo-video.md`](docs/demo-video.md).
 
 ---
 

@@ -1,6 +1,6 @@
 # Devpost submission — copy/paste
 
-Written against the Build Beyond submission checklist. Everything is formatted and ready for submission (simply insert your recorded demo video link under Demo Materials).
+Written against the Build Beyond submission checklist. Everything is formatted and ready for submission (the demo video is recorded — insert its hosted link under Demo Materials).
 
 ---
 
@@ -204,46 +204,28 @@ Listing these because I'd rather name them than have them found.
 
 ## Demo Materials
 
-Screenshots in `docs/screenshots/`. [Add your demo video link here.]
+**Demo video — `docs/doxa-demo.webm` (2 min 48 s, 1280×720).** [Upload it and put the
+link here.] A beat sheet and an optional voiceover script are in `docs/demo-video.md`.
 
-### Video script (~90 seconds)
+Screenshots in `docs/screenshots/`.
 
-Record in light mode at 1280px. Do not start on the entry form — start on the payoff.
+The video is generated rather than hand-captured: `scripts/demo-video/record.js` drives
+a real browser through the running production build — the seeded journal, the real entry
+form, the real sliders, the real tamper simulator — and records the session. Nothing in
+it is mocked or edited in afterwards, and a change that breaks the product breaks the
+recording.
 
-**0:00–0:12 — Open on the dashboard, already populated.**
-> "This is a year of my decisions. Before each one, I wrote down my reasoning and how
-> confident I was. This is what the record says about me."
+What it walks through:
 
-**0:12–0:30 — Point at the headline and the two metric numbers.**
-> "I said I was 73% confident on average. I was right 63% of the time. But notice what
-> it *doesn't* say — it won't call that a verdict, because at 41 decisions that gap is
-> still inside the noise. A tool about overconfidence shouldn't be overconfident."
-
-**0:30–0:50 — Move to the calibration curve. Hover a point so the tooltip opens.**
-> "Every decision, bucketed by how sure I was, against how often I was actually right.
-> The dashed line is perfect calibration. The error bars are 95% intervals — and the
-> hollow points are buckets with barely any decisions in them, so the app draws them
-> as the guesses they are."
-
-**0:50–1:10 — Move to the alone-vs-talked-through card. This is the turn.**
-> "Here's the part I didn't expect. Split by whether I talked the decision through
-> with anyone first. Same confidence, roughly. Completely different outcomes. Brier
-> score nearly doubles when I reason alone."
-
-**1:10–1:30 — Click "Find my patterns". Let it run. Read the sharpest insight aloud.**
-> "And this reads the reasoning itself — not the numbers, the words I actually wrote —
-> looking for what my overconfidence correlates with."
-
-*(Read the strongest insight verbatim. Don't paraphrase it. If it names a phrase you
-actually used, that's the moment the demo lands.)*
-
-**1:30–1:40 — Cut to the entry form, fill one field, stop.**
-> "Adding one takes fifteen seconds. The whole point is writing it down before you
-> know the answer — because afterwards, you won't remember what you actually thought."
-
-**If the analysis output is weak**, cut section 1:10–1:30 entirely and end on the
-alone-vs-talked-through card. A tight 70-second video that lands beats a 90-second one
-with a flat ending.
+- the dashboard: 41 decisions, 73% stated confidence against 63% accuracy, and the app
+  declining to call a gap that size a verdict at this sample size
+- the read — the pattern found in the reasoning text rather than the numbers
+- logging a decision, and the confidence slider crossing the 85% threshold
+- the adversarial interrogation: a historical failure analogue, the exact phrase quoted
+  back out of what was just typed, and one-click recalibration to the empirical median
+- the counterfactual sandbox recomputing Brier, miscalibration and discrimination live
+- the SHA-256 audit trail, an outcome flipped in SQLite, and the chain breaking at the
+  mutated block
 
 ---
 
