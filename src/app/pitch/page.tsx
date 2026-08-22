@@ -89,21 +89,21 @@ export default function PitchDeckPage() {
           <p className="text-[15px] text-ink-secondary">
             When you attempt to commit an entry with &ge;85% confidence, Doxa intercepts you with a live red-team interrogation modal:
           </p>
-          <div className="rounded-2xl border border-rose-500/30 bg-rose-950/20 p-5 space-y-3">
+          <div className="rounded-2xl border border-critical/30 bg-critical/10 p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[11px] font-bold text-rose-400 uppercase tracking-wider">
+              <span className="font-mono text-[11px] font-bold text-critical uppercase tracking-wider">
                 ⚡ Adversarial Interrogation Gate Active
               </span>
-              <span className="font-mono text-[11px] text-rose-300">Stated: 90% → Empirical: 61%</span>
+              <span className="font-mono text-[11px] text-critical">Stated: 90% → Empirical: 61%</span>
             </div>
-            <div className="text-zinc-100 font-serif italic text-[14px]">
+            <div className="text-ink font-serif italic text-[14px]">
               &ldquo;You are citing strong conviction, but your empirical hit rate in this category is only 61%. Historical Analogue: On Oct 14 you were 90% certain of an identical premise that failed.&rdquo;
             </div>
             <div className="flex flex-wrap gap-2 pt-2 text-[12px]">
-              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 font-mono text-emerald-400">
+              <span className="rounded-full border border-good/30 bg-good/10 px-3 py-1 font-mono text-good">
                 1-Click Recalibrate to 61%
               </span>
-              <span className="rounded-full border border-rose-500/30 bg-rose-500/10 px-3 py-1 font-mono text-rose-300">
+              <span className="rounded-full border border-critical/30 bg-critical/10 px-3 py-1 font-mono text-critical">
                 Freeze Premortem Defense
               </span>
             </div>
@@ -200,9 +200,9 @@ export default function PitchDeckPage() {
       subtitle: "Built with mathematical rigor for the Build Beyond Hackathon.",
       content: (
         <div className="space-y-6">
-          <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-6 text-center space-y-3">
+          <div className="rounded-2xl border border-good/30 bg-good/10 p-6 text-center space-y-3">
             <div className="display text-[26px] text-ink">Ready to Judge &amp; Experience</div>
-            <p className="text-[14px] text-emerald-300 max-w-xl mx-auto">
+            <p className="text-[14px] text-good max-w-xl mx-auto">
               Doxa turns the fog of human memory into a calibrated, tamper-evident cognitive instrument.
             </p>
             <div className="flex flex-wrap justify-center gap-3 pt-2">
