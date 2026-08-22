@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
@@ -17,64 +17,48 @@ export default function PitchDeckPage() {
   const slides: Slide[] = [
     {
       id: "title",
-      tag: "THE HOOK // PROBLEM",
-      title: "Doxa",
-      subtitle: "Where your confidence lies to you.",
+      tag: "THE PROBLEM",
+      title: "Why I Built Doxa",
+      subtitle: "The problem with hindsight.",
       content: (
         <div className="space-y-6">
           <p className="text-[18px] leading-relaxed text-ink-secondary">
-            Every consequential mistake you have ever made was accompanied by complete confidence. 
-            Once an outcome occurs, your brain retroactively edits its memory to protect your ego:
-            <span className="block mt-2 font-serif text-[22px] italic text-ink">
-              &ldquo;I always knew that was risky.&rdquo;
-            </span>
+            We all have a habit of tricking ourselves. When we are right, we say &quot;I knew it all along.&quot; When we are wrong, we say &quot;Nobody could have seen that coming.&quot;
           </p>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 pt-4 font-mono text-[13px]">
-            <div className="rounded-2xl border border-hairline bg-surface-raised p-4">
-              <div className="text-rose-400 font-bold text-[18px]">90%+</div>
-              <div className="text-ink-muted text-[11px] mt-1">HUMAN OVERCONFIDENCE</div>
-              <div className="text-ink-secondary text-[12px] mt-2">Stated certainty routinely outstrips empirical hit rates by 20-30%.</div>
-            </div>
-            <div className="rounded-2xl border border-hairline bg-surface-raised p-4">
-              <div className="text-amber-400 font-bold text-[18px]">0 Proof</div>
-              <div className="text-ink-muted text-[11px] mt-1">NOTION & SPREADSHEETS</div>
-              <div className="text-ink-secondary text-[12px] mt-2">Cannot mathematically prove you didn&rsquo;t edit predictions after the fact.</div>
-            </div>
-            <div className="rounded-2xl border border-hairline bg-surface-raised p-4">
-              <div className="text-emerald-400 font-bold text-[18px]">1 Fix</div>
-              <div className="text-ink-muted text-[11px] mt-1">MATHEMATICAL DOXA</div>
-              <div className="text-ink-secondary text-[12px] mt-2">Preregistered, SHA-256 sealed, and recalibrated with Bayesian inference.</div>
-            </div>
-          </div>
+          <p className="text-[18px] leading-relaxed text-ink-secondary">
+            I wanted to build something that stops this cycle. Doxa is a decision journal that holds you accountable to actual reality, not just comforting hindsight.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: "crypto",
+      tag: "CRYPTOGRAPHIC HONESTY",
+      title: "Proving what you knew",
+      subtitle: "And exactly when you knew it.",
+      content: (
+        <div className="space-y-6">
+          <p className="text-[18px] leading-relaxed text-ink-secondary">
+            Most AI tools let you easily edit your prompts or history. I took the opposite approach. I built Doxa on an append-only ledger.
+          </p>
+          <p className="text-[18px] leading-relaxed text-ink-secondary">
+            Every time you log a prediction, it gets sealed with a SHA-256 hash. If you try to go back and change your past confidence level to look smarter, the entire chain breaks.
+          </p>
         </div>
       ),
     },
     {
       id: "math",
       tag: "CORE MATHEMATICS",
-      title: "Proper Scoring & Bayesian Recalibration",
-      subtitle: "A tool about overconfidence has no business being overconfident.",
+      title: "Measuring True Calibration",
+      subtitle: "Bayesian math under the hood.",
       content: (
-        <div className="space-y-5 text-[14px]">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-hairline bg-surface-raised p-5 space-y-2">
-              <div className="font-mono text-emerald-400 text-[12px] font-bold">1. BAYESIAN GRID RECALIBRATION</div>
-              <div className="font-mono text-[16px] text-ink font-semibold">σ(a · logit(p) + b)</div>
-              <p className="text-ink-secondary text-[13px] leading-relaxed">
-                Maps subjective confidence to empirical reality using a 2-parameter model with an exact 95% Bayesian credible fan—deterministic without MCMC approximation.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-hairline bg-surface-raised p-5 space-y-2">
-              <div className="font-mono text-sky-400 text-[12px] font-bold">2. MURPHY BRIER DECOMPOSITION</div>
-              <div className="font-mono text-[16px] text-ink font-semibold">Brier = Reliability - Resolution + Uncertainty</div>
-              <p className="text-ink-secondary text-[13px] leading-relaxed">
-                Separates honest calibration (not overclaiming) from true discrimination power (detecting high-probability events).
-              </p>
-            </div>
-          </div>
-          <div className="rounded-2xl border border-hairline bg-surface/60 p-4 font-mono text-[12px] text-ink-secondary flex items-center justify-between">
-            <span>✓ Wilson score intervals on sparse buckets</span>
-            <span>✓ 10,000-shuffle permutation test for hindsight gap</span>
+        <div className="space-y-6">
+          <p className="text-[18px] leading-relaxed text-ink-secondary">
+            Instead of just asking &quot;was I right or wrong&quot;, Doxa runs Bayesian math in the background to check your actual calibration.
+          </p>
+          <div className="rounded-2xl border border-hairline bg-surface-raised p-5 space-y-2 text-[15px]">
+            Are you actually right 90% of the time when you claim to be 90% sure? It breaks your track record down into a Brier score, showing if you have genuine insight or if you are just being overconfident.
           </div>
         </div>
       ),
@@ -83,60 +67,27 @@ export default function PitchDeckPage() {
       id: "interrogator",
       tag: "THE SHOWSTOPPER FEATURE",
       title: "The Adversarial Interrogator",
-      subtitle: "Red-teaming certainty at the moment of highest risk (≥85%).",
+      subtitle: "Stopping mistakes before they happen.",
       content: (
-        <div className="space-y-4">
-          <p className="text-[15px] text-ink-secondary">
-            When you attempt to commit an entry with &ge;85% confidence, Doxa intercepts you with a live red-team interrogation modal:
+        <div className="space-y-6">
+          <p className="text-[16px] leading-relaxed text-ink-secondary">
+            This is my favorite feature. If you try to log a new decision with extreme confidence, but your historical track record in that area is poor, Doxa will literally pause the screen.
           </p>
           <div className="rounded-2xl border border-critical/30 bg-critical/10 p-5 space-y-3">
             <div className="flex items-center justify-between">
               <span className="font-mono text-[11px] font-bold text-critical uppercase tracking-wider">
-                ⚡ Adversarial Interrogation Gate Active
+                ADVERSARIAL INTERROGATION GATE ACTIVE
               </span>
-              <span className="font-mono text-[11px] text-critical">Stated: 90% → Empirical: 61%</span>
+              <span className="font-mono text-[11px] text-critical">Stated: 90% | Empirical: 61%</span>
             </div>
             <div className="text-ink font-serif italic text-[14px]">
-              &ldquo;You are citing strong conviction, but your empirical hit rate in this category is only 61%. Historical Analogue: On Oct 14 you were 90% certain of an identical premise that failed.&rdquo;
+              &quot;You are citing strong conviction, but your empirical hit rate in this category is only 61%. Historical Analogue: On Oct 14 you were 90% certain of an identical premise that failed.&quot;
             </div>
             <div className="flex flex-wrap gap-2 pt-2 text-[12px]">
               <span className="rounded-full border border-good/30 bg-good/10 px-3 py-1 font-mono text-good">
                 1-Click Recalibrate to 61%
               </span>
-              <span className="rounded-full border border-critical/30 bg-critical/10 px-3 py-1 font-mono text-critical">
-                Freeze Premortem Defense
-              </span>
             </div>
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: "crypto",
-      tag: "TAMPER-EVIDENT INTEGRITY",
-      title: "SHA-256 Hash Chain & Live Auditor",
-      subtitle: "Mathematically proving 'I wrote this before I knew'.",
-      content: (
-        <div className="space-y-4">
-          <p className="text-[14px] text-ink-secondary">
-            Every decision, recall, and outcome is canonicalized into an append-only cryptographic event chain:
-          </p>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-hairline bg-surface-raised p-4 font-mono text-[12px] space-y-2">
-              <div className="text-emerald-400 font-bold">CLIENT-SIDE WEBCRYPTO</div>
-              <p className="text-ink-secondary text-[12px]">
-                The <code className="text-white">/verify</code> engine runs <code className="text-white">window.crypto.subtle</code> to replay every event hash directly in the judge&rsquo;s browser.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-hairline bg-surface-raised p-4 font-mono text-[12px] space-y-2">
-              <div className="text-rose-400 font-bold">LIVE TAMPER SIMULATOR</div>
-              <p className="text-ink-secondary text-[12px]">
-                Interactively flip historical outcomes or alter confidence to watch the cryptographic chain break in real-time.
-              </p>
-            </div>
-          </div>
-          <div className="rounded-xl border border-hairline bg-surface/60 p-3 font-mono text-[11px] text-ink-muted text-center">
-            Chain Head: <span className="text-ink">SHA-256 Digest Verified // 100% Sealed</span>
           </div>
         </div>
       ),
@@ -144,51 +95,20 @@ export default function PitchDeckPage() {
     {
       id: "sandbox",
       tag: "INTERACTIVE LABORATORY",
-      title: "Counterfactual Sandbox & Epistemic ROI",
-      subtitle: "Simulate deflating unearned certainty at 60 frames per second.",
+      title: "The Counterfactual Sandbox",
+      subtitle: "A playground for better thinking.",
       content: (
-        <div className="space-y-4">
-          <p className="text-[14px] text-ink-secondary">
-            Instead of static charts, Doxa provides a live simulation sandbox:
+        <div className="space-y-6">
+          <p className="text-[18px] leading-relaxed text-ink-secondary">
+            I added a live sandbox so you can play with your own data. You can drag sliders to see what would happen if you were just a little less confident across the board.
           </p>
           <div className="rounded-2xl border border-hairline bg-surface-raised p-5 space-y-3 font-mono text-[12px]">
             <div className="flex items-center justify-between text-ink">
-              <span className="text-emerald-400 font-bold">SLIDER: -14% CONFIDENCE DEFLATION</span>
-              <span>Brier: 0.241 → 0.188 (Better)</span>
+              <span className="text-good font-bold">SLIDER: -14% CONFIDENCE DEFLATION</span>
             </div>
-            <div className="h-2 w-full rounded-full bg-hairline overflow-hidden">
-              <div className="h-full bg-emerald-400 w-3/4 rounded-full" />
+            <div className="text-ink-secondary text-[13px] leading-relaxed mt-2">
+              The math instantly recalculates on screen, showing exactly how much your overall reliability would improve just by being a little more humble.
             </div>
-            <div className="text-ink-secondary text-[11px] leading-relaxed">
-              ⚡ <span className="text-emerald-400 font-bold">Epistemic ROI:</span> Purges unearned certainty points from failed bets, raises reliability by 24%, and neutralizes high-certainty blindspots without damaging discrimination.
-            </div>
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: "antiwrapper",
-      tag: "TECHNICAL SUPERIORITY",
-      title: "The Ultimate Anti-Wrapper",
-      subtitle: "Why technical hackathon judges love Doxa.",
-      content: (
-        <div className="space-y-4 text-[13px]">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 font-mono">
-            <div className="rounded-xl border border-hairline bg-surface-raised p-3.5">
-              <div className="text-sky-400 font-bold text-[14px]">246 Tests</div>
-              <div className="text-ink-secondary text-[11px] mt-1">100% Vitest coverage over Bayesian math, hash chains, and FDR holdout splits.</div>
-            </div>
-            <div className="rounded-xl border border-hairline bg-surface-raised p-3.5">
-              <div className="text-emerald-400 font-bold text-[14px]">Machine Oracles</div>
-              <div className="text-ink-secondary text-[11px] mt-1">Automatic grading via GitHub PRs, issues, and NPM registry APIs.</div>
-            </div>
-            <div className="rounded-xl border border-hairline bg-surface-raised p-3.5">
-              <div className="text-amber-400 font-bold text-[14px]">Self-Refuting</div>
-              <div className="text-ink-secondary text-[11px] mt-1">Displays its own failed hypotheses on screen using Benjamini-Hochberg FDR control.</div>
-            </div>
-          </div>
-          <div className="rounded-2xl border border-hairline bg-surface/70 p-4 text-[13px] text-ink-secondary">
-            <strong className="text-ink">100% Local &amp; Private:</strong> SQLite, Node.js WebCrypto, zero tracking, and local Ollama inference with explicit Gemini cloud fallback consent.
           </div>
         </div>
       ),
@@ -196,38 +116,33 @@ export default function PitchDeckPage() {
     {
       id: "summary",
       tag: "THE VERDICT",
-      title: "Turn Intuition into an Empirical Asset",
-      subtitle: "Built with mathematical rigor for the Build Beyond Hackathon.",
+      title: "Ready for the Judges",
+      subtitle: "Built for the Build Beyond Hackathon.",
       content: (
         <div className="space-y-6">
+          <p className="text-[16px] leading-relaxed text-ink-secondary text-center mb-6">
+            Doxa is not just another thin AI wrapper. It is 100% local, deeply private, and built with genuine mathematical rigor. It turns the fog of human memory into something you can actually measure and improve.
+          </p>
           <div className="rounded-2xl border border-good/30 bg-good/10 p-6 text-center space-y-3">
-            <div className="display text-[26px] text-ink">Ready to Judge &amp; Experience</div>
-            <p className="text-[14px] text-good max-w-xl mx-auto">
-              Doxa turns the fog of human memory into a calibrated, tamper-evident cognitive instrument.
-            </p>
-            <div className="flex flex-wrap justify-center gap-3 pt-2">
-              <Link
-                href="/"
-                className="rounded-full bg-ink px-5 py-2.5 text-[13px] font-medium text-page hover:opacity-90 transition-opacity"
-              >
-                Open Main Dashboard →
+            <div className="display text-[26px] text-ink">Ready to Judge & Experience</div>
+            <div className="flex flex-wrap justify-center gap-3 pt-4">
+              <Link href="/" className="rounded-full bg-ink px-5 py-2.5 text-[13px] font-medium text-page hover:opacity-90 transition-opacity">
+                Open Main Dashboard
               </Link>
-              <Link
-                href="/verify"
-                className="rounded-full border border-hairline bg-surface-raised px-5 py-2.5 text-[13px] font-medium text-ink hover:bg-hairline transition-colors"
-              >
+              <Link href="/verify" className="rounded-full border border-hairline bg-surface-raised px-5 py-2.5 text-[13px] font-medium text-ink hover:bg-hairline transition-colors">
                 Launch Cryptographic Auditor
               </Link>
             </div>
           </div>
-          <div className="flex items-center justify-between text-[12px] font-mono text-ink-muted">
+          <div className="flex items-center justify-between text-[12px] font-mono text-ink-muted mt-8">
             <span>Solo Submission: Rohan Mukka</span>
-            <span>MIT License · Next.js 16 + React 19</span>
+            <span>MIT License | Next.js 16 + React 19</span>
           </div>
         </div>
       ),
     },
   ];
+
 
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev < slides.length - 1 ? prev + 1 : prev));
@@ -271,7 +186,7 @@ export default function PitchDeckPage() {
             disabled={currentSlide === 0}
             className="rounded-full border border-hairline bg-surface-raised px-3 py-1 text-[12px] text-ink disabled:opacity-30 hover:bg-hairline transition-colors"
           >
-            ← Prev
+            â† Prev
           </button>
           <button
             type="button"
@@ -279,7 +194,7 @@ export default function PitchDeckPage() {
             disabled={currentSlide === slides.length - 1}
             className="rounded-full border border-hairline bg-surface-raised px-3 py-1 text-[12px] text-ink disabled:opacity-30 hover:bg-hairline transition-colors"
           >
-            Next →
+            Next â†’
           </button>
         </div>
       </div>
@@ -317,7 +232,7 @@ export default function PitchDeckPage() {
           </div>
 
           <div className="text-[11px] font-mono text-ink-muted hidden sm:block">
-            Use <kbd className="rounded border border-hairline px-1.5 py-0.5 bg-surface-raised text-ink">←</kbd> <kbd className="rounded border border-hairline px-1.5 py-0.5 bg-surface-raised text-ink">→</kbd> arrow keys to navigate
+            Use <kbd className="rounded border border-hairline px-1.5 py-0.5 bg-surface-raised text-ink">â†</kbd> <kbd className="rounded border border-hairline px-1.5 py-0.5 bg-surface-raised text-ink">â†’</kbd> arrow keys to navigate
           </div>
         </div>
       </div>
