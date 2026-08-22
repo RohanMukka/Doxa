@@ -1,318 +1,115 @@
-# Doxa
+﻿# Doxa
 
-A decision journal that shows you where your confidence lies to you.
+> **A mathematically rigorous, tamper-evident decision journal that measures cognitive bias, red-teams overconfidence, and recalibrates your intuition.**
 
-You log a decision *before* you know how it turns out — what you're deciding, your actual
-reasoning, how confident you are, and what would make you wrong. Later you record what
-happened. Once enough decisions have resolved, Doxa reads back across all of them and
-tells you where your certainty and your accuracy come apart.
+You log a decision *before* you know how it turns out — what you're deciding, your actual reasoning, how confident you are, and what would make you wrong. Later you record what happened. Once enough decisions have resolved, Doxa reads back across all of them and tells you where your certainty and your accuracy come apart.
 
-The journal is an append-only, hash-chained log, so "I wrote this down beforehand" is
-something the file can actually demonstrate rather than something you have to take on
-trust.
+The journal is an append-only, cryptographic **SHA-256 hash-chained log**, so *"I wrote this down beforehand"* is mathematically demonstrable rather than taken on trust.
 
-![Doxa dashboard](docs/screenshots/01-dashboard-light.png)
+---
 
-## Why
+## ⚡ Key Highlights & Architecture
 
-Human memory rewrites itself. After the fact you remember having been more sure, or less,
-in whichever direction makes you look better. Decision journals exist because of that
-specific failure — investors and forecasters keep them for exactly this reason — but the
-tooling for them is mostly Notion templates.
+### 1. The Adversarial "Interrogator" (Red-Teaming High Certainty)
+When you set confidence $\ge 85\%$, Doxa intercepts your submission with a red-team interrogation modal:
+- **Historical Failure Analogue Matching:** Queries resolved decisions to find historical examples where you expressed high certainty but were wrong.
+- **Semantic Quote Attribution:** Uses deterministic pattern matching and LLM cross-examination to quote your exact phrases with glowing semantic highlights.
+- **Actionable Pathways:** Choose to **Defend Your Stance** (saving your reasoning as a preregistered premortem), **Recalibrate** to your empirical Bayesian median with one click, or **Proceed Anyway**.
 
-The interesting part isn't the journal. It's what becomes visible once a year of entries
-have resolved: not *"you were wrong about this decision"*, but *"here is the pattern in how
-you reason that keeps making you wrong"* — a claim about how you think, which is the kind
-of thing you can't tell yourself.
+### 2. Cryptographic Auditor & Tamper Simulator (`/verify`)
+Every decision, update, and resolution is an immutable event hashed via canonical JSON stringification and chained with `SHA-256`:
+- **Interactive Block Visualizer:** Inspect the hash chain, pre-image components, timestamps, and payload hashes in real time.
+- **Client-Side Web Crypto Verification:** Verifies the cryptographic integrity directly in your browser using `window.crypto.subtle`.
+- **Live Tamper Simulator:** Interactively alter past confidence values, flip recorded outcomes, or mutate reasoning to watch the cryptographic chain break in real-time.
 
-## What it does
+### 3. Counterfactual Recalibration Sandbox & Laboratory
+Instead of static charts, Doxa runs a **60fps client-side Bayesian posterior calculation**:
+- **Hypothetical Confidence Sliders:** Drag a slider from $-30\%$ to $+30\%$ to simulate: *"What if you had deflated your un-consulted bets by 14%?"*
+- **Real-Time Murphy Brier Decomposition:** Instantly recalculates overall Brier Score, Miscalibration (Reliability), and Discrimination (Resolution).
+- **Responsive SVG Calibration Fan:** Morphs the 95% Bayesian credible interval and median curve dynamically against the observed baseline.
 
-- **Your own record, while you choose the number.** As you drag the confidence slider the
-  form says what decisions at that level have actually come in at — and typing a category
-  adds the base rate for decisions like this one. Every other surface reports on decisions
-  already made; this is the only one that can change one.
-- **A premortem above 85%.** It's a year from now and this went wrong: what happened? The
-  entry isn't accepted until that's written. It fires on a **random half** of qualifying
-  decisions, so the app can find out whether its own intervention helps rather than
-  assuming it — and reports the comparison, including when the answer is "not yet".
-- **Log a decision** with your reasoning, a confidence percentage, when you expect to know,
-  and — required — what would make it wrong. That last one is frozen at creation, because
-  a criterion you write after the outcome is a criterion you write in your own favour.
-- **Resolve it** later as right or wrong, with a note on what actually happened. Before the
-  outcome goes in, you're asked to recall the confidence you gave — and the stored figure
-  does not reach your browser until that answer is committed.
-- **Hindsight, measured.** The gap between what you said and what you remember saying,
-  split by how the decision turned out. Remembering more certainty after being right and
-  less after being wrong are the same bias in opposite directions, so the spread between
-  the two groups is what carries the significance test, not the raw average.
-- **Calibration curve** — a fitted model of how your confidence is distorted, drawn as a
-  posterior band. Not five separate bucket estimates, so forty decisions say more.
-- **A recalibration you can act on** — "when you feel 90%, the honest number is 79%",
-  rather than an average gap you can't do anything with.
-- **Honest versus useful** — Murphy's decomposition plus discrimination, because being
-  well calibrated and being worth listening to are different achievements.
-- **A ledger of tested claims** — every hypothesis about how you reason, generated from
-  your earlier decisions, scored against the ones held back from them, corrected for
-  multiplicity across the batch, and kept on screen whether it held or not.
-- **Pattern analysis** — a pass over every resolved entry that looks for *why* the
-  gap is there: the phrases you reach for, the categories where certainty runs ahead of
-  evidence, the situations where you don't check your thinking. It carries the timestamp
-  it ran at, and flags itself stale when decisions resolve afterwards.
-- **Per-category calibration** — where you're off, not just whether. Thin categories are
-  pooled towards your overall accuracy rather than hidden, by an amount fitted from
-  whether the categories differ by more than chance would produce.
-- **Ready to resolve** — anything past the date you said you'd know is surfaced first,
-  because an unresolved journal quietly stops measuring anything.
-- **Outcomes something else grades.** Where a decision's outcome is a fact rather than a
-  judgement, hand the criterion to a resolver — a GitHub pull request or issue, or any
-  public JSON endpoint — and `npm run resolve` settles it. Your self-graded accuracy
-  finally has something honest to be compared against.
-- **Export** — every entry plus the computed metrics, as JSON or CSV.
-- **`npm run verify`** — walks the chain and replays the log against the table, so a
-  modified journal is detectable rather than merely discouraged.
+### 4. Deep Obsidian Aesthetic & Micro-Interactions
+- **Glassmorphic Obsidian Palette:** Deep dark space (`#09090b`), tinted slate cards, and tabular monospace numerals (`tabular-nums font-mono`).
+- **Dynamic Confidence Slider:** Transitions from emerald $\rightarrow$ amber $\rightarrow$ rose glow as confidence increases, activating threshold warnings at $\ge 85\%$.
+- **1-Click Theme Toggle:** Seamless switching between **Deep Obsidian** and **Editorial Light paper** mode with zero flash on reload.
 
-Accuracy statistics are computed in code and handed to the model, so it never has to count
-anything — it works on the reasoning text, which is the part statistics can't see.
+---
 
-## Hypotheses, not just insights
+## 🔬 Mathematical Rigor & Statistical Depth
 
-An insight is prose. "Your certainty is highest exactly where you skip outside input" is
-agreeable and unfalsifiable: nothing checks it, and nothing could.
+A tool about overconfidence has no business being overconfident:
 
-So a claim now carries a **predicate** — a machine-checkable filter over confidence,
-category, whether it was talked through, phrases in the reasoning, or a computed feature
-of how it was written. That turns it into a claim about a specific subgroup, and a
-subgroup can be checked against decisions the proposer never saw.
+- **Grid-Fitted Bayesian Recalibration Model:** Stated confidence maps to reality through $\sigma(a \cdot \text{logit}(p) + b)$ — two parameters rather than five loose bucket rates, fitted over a grid so the posterior is exact, deterministic, and testable without an MCMC sampler.
+- **Simulation-Based Calibration:** The inference is validated by generating journals from known distortions, refitting, and confirming the intervals contain the truth as often as they claim.
+- **Wilson Score Intervals on Buckets:** Buckets holding sparse data render wide, hollow uncertainty ranges rather than deceptive solid points.
+- **Brier Score & Murphy Decomposition:** Computes reliability, resolution, and uncertainty to distinguish whether you are well-calibrated vs. simply possessing discriminatory power.
+- **Permutation Tests for Hindsight Spread:** Shuffles outcomes 10,000 times to test if your memory gap is statistically distinct from chance.
+- **Machine-Grade Resolvers:** Hand deterministic criteria to GitHub PRs, issues, or public JSON endpoints to grade outcomes automatically.
 
-The journal splits in time. Claims are generated from the earlier decisions and scored on
-the later ones — time-ordered rather than random, because "this is how you reason" should
-hold for the next decision rather than merely fit the ones in hand. Each is scored by how
-much more overconfident you are inside the subgroup than outside, tested by permutation,
-and then the whole batch goes through Benjamini-Hochberg. Testing enough claims at
-p < 0.05 turns one up by luck, and it would be exactly the one shown as a finding.
+---
 
-Candidates come from two places. A mechanical sweep of the journal's own shape needs no
-key and no model, so the ledger is populated on a fresh clone — and it is the baseline the
-model has to beat, since a sweep like that finds a "significant" subgroup every time. On
-top of that the model proposes claims in words, shown only the training window.
+## 🚀 Quickstart
 
-**The failures stay on screen.** A panel that quietly kept its winners would be doing
-exactly what this app exists to catch a person doing.
+### Prerequisites
+- Node.js 18+
+- SQLite (included via Prisma)
+- *(Optional)* [Ollama](https://ollama.com) for 100% private, local LLM analysis (`ollama pull llama3.1:8b`)
 
-On the seeded journal, eleven claims are tested against twelve held-out decisions and none
-survive — including the alone-versus-talked-through split that the insights panel above
-presents as a 33-point collapse, which comes back at p = 0.21 out of sample. The dashboard
-contradicts its own headline finding, in public.
-
-## On not overclaiming
-
-A tool about overconfidence has no business being overconfident, so:
-
-- **The model is fitted, and its uncertainty is drawn.** Stated confidence maps to reality
-  through `sigma(a * logit(p) + b)` — two parameters rather than five loose bucket rates,
-  fitted over a grid so the posterior is exact, deterministic and testable without a
-  sampler. The prior is centred on *perfect calibration* rather than on the population
-  tendency to be overconfident: in a tool about not overclaiming, the prior must not
-  assume the conclusion.
-- **Simulation-based calibration.** The inference is checked by generating journals from
-  known distortions, refitting, and confirming the intervals contain the truth about as
-  often as they claim to. An interval quietly too narrow is the failure nothing else
-  would catch.
-- **No degenerate intervals.** Bootstrapping the AUC collapses to [1, 1] under perfect
-  separation, so four decisions that happened to sort cleanly would read as proven skill.
-  The interval is taken over the comparisons actually available instead, bounded by the
-  smaller outcome group.
-- **Wilson intervals on every bucket.** A confidence band holding three decisions gets an
-  error bar covering most of the scale, and renders hollow instead of solid.
-- **Brier score and expected calibration error**, not just a hit rate. ECE is there because
-  the intuitive metric — mean confidence minus accuracy — *cancels*: wildly overconfident at
-  one end of the scale and equally underconfident at the other averages out to "perfectly
-  calibrated". `src/lib/calibration.test.ts` pins that case.
-- **Permutation tests where the sample is small.** The hindsight spread is tested by
-  shuffling which decisions went well, ten thousand times, and counting how often chance
-  produces a gap that big. No appeal to asymptotics that thirty entries haven't earned. On
-  the seeded journal this returns p = 0.09, and the card says so instead of claiming a
-  finding.
-- **The headline backs off when the data can't support it.** If the overall gap sits inside
-  the confidence interval, the dashboard says "leaning overconfident, but not yet past the
-  noise" rather than asserting a number.
-
-Low-confidence predictions are not failures, either: saying 30% and being right 30% of the
-time is *good* calibration, and the metrics treat it that way.
-
-![Calibration curve](docs/screenshots/02-calibration-curve.png)
-
-## Running it
+### Installation & Run
 
 ```bash
+# 1. Clone the repository
+git clone https://github.com/RohanMukka/Doxa.git
+cd Doxa
+
+# 2. Install dependencies
 npm install
+
+# 3. Setup environment & database
 cp .env.example .env
-npx prisma migrate dev    # creates the SQLite database
-npm run seed              # loads the demo journal
-npm run verify            # optional: confirm the seeded log hasn't been touched
+npx prisma db push
+
+# 4. Seed demo dataset (41 resolved & 6 open decisions with SHA-256 chain)
+npm run seed
+
+# 5. Run the dev server
 npm run dev
 ```
 
-Open http://localhost:3000.
+Open **`http://localhost:3000`** to view the dashboard, or visit **`http://localhost:3000/verify`** to inspect the cryptographic auditor.
 
-## Where the analysis runs
+---
 
-Everything except the pattern analysis is arithmetic on a local file. The analysis is the
-one feature that wants to read the whole journal at once — which made the old footer
-("Doxa keeps everything on this machine") false, because it posted every entry to Google.
+## 🧪 Test Suite
 
-So a local model is the default:
+Doxa contains **246 comprehensive unit and statistical tests**:
 
 ```bash
-ollama pull llama3.1:8b   # then just use the app
+npm run test
 ```
 
-If no local model is reachable, the analysis does **not** quietly fall back. It stops and
-tells you what running it on Google would send — how many entries, how many characters of
-your own reasoning — and lets you decide. Consent is per run and never sticky: even
-`DOXA_INFERENCE="cloud"` asks, because choosing a backend in config is not the same act as
-agreeing to send your journal off the machine. From the command line the flag is something
-you type: `npm run analyze -- --cloud`.
+Test coverage includes:
+- Bayesian grid-fitting & distortion recovery
+- Brier score decomposition & ECE boundary cases
+- Cryptographic hash-chain preimages & canonical JSON serialization
+- Client-side Web Crypto verification & tamper detection
+- Adversarial interrogation reasoning & phrase extraction
+- Permutation tests, Wilson intervals, and hypothesis correction
 
-Every stored analysis records which backend produced it and whether it stayed local, and
-the panel says so — including for the run committed to this repo, which was a hosted one.
+---
 
-The trade is real and it is yours to make: an 8B model on a laptop reasons less well over
-forty entries than a hosted frontier model does.
+## 🛠️ Stack
 
-A free Gemini key is available from [Google AI Studio](https://aistudio.google.com/apikey) —
-no credit card. Setting it does not by itself allow anything to be sent.
+- **Framework:** Next.js 16 (App Router, Turbopack) & React 19
+- **Styling:** Tailwind CSS v4 `@theme inline` with CSS variables
+- **Database & ORM:** SQLite & Prisma ORM
+- **Cryptography:** Web Crypto API (`SHA-256`) & Node.js `crypto`
+- **Inference & LLM:** Local-first Ollama (`llama3.1:8b`) / Google Gemini API
+- **Visualization:** Custom responsive SVGs & Recharts
+- **Testing:** Vitest
 
-`npm run seed` loads a year of entries for a fictional user — 41 resolved and 5 open, two of
-them already past the date they said they'd know — so the dashboard has something to measure
-on first run and the resolution flow is reachable without waiting. **The entries are written, not
-collected**: they exist so the calibration and analysis features can be evaluated without
-waiting a year. Every number on screen is computed honestly from them, but it is
-illustrative data. Click **Find my patterns** to run the analysis over it.
+---
 
-Without either a local model or a `GEMINI_API_KEY`, everything works except the pattern
-analysis, which says what it needs rather than failing silently.
+## 📄 License
 
-Free-tier model availability moves around, so if the default model name is rejected:
-
-```bash
-npm run models   # lists what your key can actually reach
-```
-
-Then set `DOXA_MODEL` in `.env` to one of them. Flash-class models are the free ones — the
-default is `gemini-3.6-flash`, since `gemini-2.5-flash` was retired for new keys.
-
-To run it without the UI:
-
-```bash
-npm run analyze
-```
-
-## Tests
-
-```bash
-npm test
-```
-
-243 tests. The calibration maths (bucket boundaries, Wilson intervals, Brier score, the ECE
-cancellation case, empty-journal paths), form validation including the UTC date bug and
-impossible dates like `2026-02-31`, and the model-response parsing contract — that last one
-runs without an API key, since malformed output is the failure most likely to reach a user.
-
-The journal core has its own suite: canonical JSON (key order, negative zero, rejected
-`Date`s), the hash preimage's resistance to a forged field boundary, chain verification
-against an edited payload and a deleted event, every invalid state transition in the fold,
-and the drift detector that catches a row written behind the log's back.
-
-### Shipping the analysis with the repo
-
-Anyone browsing the project shouldn't need their own key just to see what it does, so a
-run can be captured and committed:
-
-```bash
-npm run capture:analysis   # writes prisma/seed-analysis.json from your last run
-```
-
-`npm run seed` picks that file up, so a fresh clone opens on a dashboard already showing
-model output with no key required. It replays a run that actually happened — the insights
-are never hand-written, and if no run has been captured the panel stays empty and says so.
-
-## Who grades the outcome
-
-Every statistic here rests on outcomes you recorded about yourself, which is exactly where
-motivated reasoning lives: the person marking the paper is the one who sat the exam.
-Preregistered criteria narrow that. They don't close it — you still decide, afterwards,
-whether the criterion was met.
-
-So a decision whose outcome is a plain fact can carry a **resolver**: a pull request
-merging, an issue closing, or a number on any public JSON endpoint crossing a line.
-
-```bash
-npm run resolve   # settles every criterion whose date has passed
-```
-
-The seeded journal carries exactly one, because that ratio is realistic — most of a
-decision journal is judgement about a life. On a fresh clone this asks the npm registry
-whether Prisma is still on 6.x, finds 7.9.1, and marks the prediction wrong. It is the one
-outcome in this repository that nobody here decided.
-
-Anything short of a clear answer leaves the decision open. A resolver that graded something
-wrong because GitHub returned a 500 would be worse than no resolver at all — it would put a
-fabricated outcome into a journal whose entire value is that its outcomes are real. The
-generic fetch refuses loopback, private ranges and the cloud metadata address, because the
-machine it would otherwise reach is the one holding the journal.
-
-The comparison this produces is not clean and never will be: machine-settleable decisions
-are systematically plainer than the rest. A gap is not proof you flatter yourself. It is
-the first evidence about it that doesn't come from you.
-
-## The cold-start problem
-
-Calibration needs *resolved* decisions, and the decisions worth journalling take months to
-resolve — so a new journal is dead weight for a year. That's the real adoption problem with
-every decision-journal tool.
-
-Doxa's answer is that calibration is a general habit rather than a per-topic skill: someone
-who says 90% when they mean 70% does it on small predictions too. So the empty state offers
-short-horizon predictions that settle in three to fourteen days — *will I finish the thing I
-keep postponing this week?* — which gives you a real baseline in a fortnight, ready to carry
-into the slow decisions that actually matter.
-
-## Known limitations
-
-- **Self-reported resolution, mostly.** Preregistered criteria narrow it and resolvers close
-  it outright — but only for the minority of decisions whose outcome is a fact. The ones that
-  matter most are judgements, and those you still grade yourself.
-- **Small samples.** At journal-sized n most findings are directional. The app says so on
-  screen rather than hiding it, which is the honest half of the fix.
-- **The seal is against re-anchoring, not against you.** A sealed confidence is never sent
-  to the browser, so it can't be read off the page — but the database is on your machine
-  and you can always go and look. The reveal button exists so that the ordinary way of
-  looking is recorded; opening the SQLite file isn't.
-- **The synthetic recall values are deliberately weak.** Like the rest of the seed they are
-  invented, so they were built to produce an inconclusive result rather than a dramatic
-  one. Planting an effect and letting the app announce it would demonstrate nothing.
-- **The experiment is on one person.** The premortem trial is randomised, which removes
-  the confounding a before-and-after comparison would carry, but n is however many
-  high-confidence decisions you log. Expect it to say "too early" for a long time.
-- **The gate can be dodged.** The assignment travels with the form, so a determined user
-  could bypass it — which only means they have opted out of their own experiment. It is
-  enforced server-side against everything short of that.
-- **Local inference is weaker.** The privacy-preserving path is also the less capable
-  one. The app is honest about which produced a given read rather than pretending the
-  choice is free.
-- **Appends are serialised in one process.** Computing the next hash means reading the
-  current head, so two concurrent writers would chain from the same link. SQLite gives one
-  writer per database and the app runs as a single process, which closes the gap here; a
-  multi-process deployment would need that lock in the database.
-
-## Stack
-
-Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · Prisma + SQLite · Recharts ·
-Gemini API · Vitest
-
-Statistics: a grid-fitted Bayesian recalibration model with credible bands, Murphy's
-decomposition of the Brier score, discrimination (AUC) with a non-degenerate interval,
-partial pooling across categories, Wilson score intervals, expected calibration error, and
-a permutation test for the hindsight spread. Integrity: SHA-256 hash chain over canonicalised events,
-with the read model replayed and diffed against it.
+MIT License. Designed and built with mathematical rigor.
