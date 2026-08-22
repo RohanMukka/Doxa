@@ -36,8 +36,12 @@ export type EventPayloads = {
     /**
      * Whether the premortem gate fired. Recorded even when it didn't, because
      * the decisions it skipped are the control group.
+     *
+     * Null for decisions made before the experiment existed. They are not
+     * controls — nothing was withheld from them — and counting them as such
+     * would load the arm they landed in with a year of un-intervened decisions.
      */
-    premortemAssigned: boolean;
+    premortemAssigned: boolean | null;
   };
   /**
    * What the person believed they had said, committed to the log *before* the

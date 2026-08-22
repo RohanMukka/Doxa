@@ -62,6 +62,14 @@ with someone carry almost the same stated confidence — and land very different
 
 ### Main Features
 
+- **It intervenes, and then checks whether the intervention worked.** The entry
+  form shows what your confidence at this level has actually been worth, as you
+  choose it. Above 85% it makes you write the disconfirming case before the entry
+  is accepted — on a **random half** of qualifying decisions, because a tool that
+  changes your decisions and never tests the change is asking for exactly the
+  faith it exists to withdraw. The dashboard reports that trial like any other
+  claim, including when the honest answer is "too early to say".
+
 - **Claims are tested, not asserted.** Every hypothesis about how you reason
   carries a machine-checkable predicate, is generated from your earlier
   decisions only, and is scored against the ones held back from it — with a
@@ -144,7 +152,7 @@ with someone carry almost the same stated confidence — and land very different
 - **Pluggable inference** — a local model via **Ollama** by default, **Google Gemini**
   (`@google/genai`) only on explicit per-run consent. One response schema, translated
   per backend, re-validated with **Zod** server-side
-- **Vitest** — 196 tests over the calibration maths, the hash chain and its
+- **Vitest** — 209 tests over the calibration maths, the hash chain and its
   canonical encoding, every invalid state transition in the projection, form
   validation, and the model-response parsing contract
 - Statistics: Wilson score intervals, Brier score, expected calibration error, and a

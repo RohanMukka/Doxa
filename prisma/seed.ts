@@ -708,11 +708,12 @@ async function main() {
         consultedOthers: e.consultedOthers,
         resolutionDate: new Date(e.resolutionDate).toISOString(),
         falsifier: falsifierFor(e.decision, e.createdAt),
-        // The premortem gate postdates every entry in this file. Assigning it
-        // retroactively would invent an experiment that never ran, and the
-        // point of randomising it is that the answer isn't decided in advance.
+        // The premortem gate postdates every entry in this file, so these
+        // belong to neither arm. Marking them as controls would be worse than
+        // fabricating an effect: it would quietly stack the comparison group
+        // with a year of decisions the intervention was never withheld from.
         premortem: null,
-        premortemAssigned: false,
+        premortemAssigned: null,
       },
     });
 

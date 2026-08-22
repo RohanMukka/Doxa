@@ -62,3 +62,28 @@ describe("premortemExperiment", () => {
     expect(r.p).toBeGreaterThan(0);
   });
 });
+
+describe("entries from before the experiment", () => {
+  it("are counted in neither arm", () => {
+    // The seeded journal is entirely pre-experiment. Landing it in the control
+    // group would stack that arm with a year of decisions the intervention was
+    // never withheld from, and the comparison would be meaningless.
+    const r = premortemExperiment([
+      ...Array.from({ length: 19 }, () => row(90, "incorrect", null)),
+      ...arm(6, 90, 4, true),
+      ...arm(6, 90, 4, false),
+    ]);
+    expect(r.asked.n).toBe(6);
+    expect(r.notAsked.n).toBe(6);
+    expect(r.comparable).toBe(true);
+  });
+
+  it("leave the trial reading as not started when they are all there is", () => {
+    const r = premortemExperiment(
+      Array.from({ length: 19 }, () => row(90, "incorrect", null))
+    );
+    expect(r.asked.n).toBe(0);
+    expect(r.notAsked.n).toBe(0);
+    expect(r.comparable).toBe(false);
+  });
+});

@@ -27,6 +27,14 @@ of thing you can't tell yourself.
 
 ## What it does
 
+- **Your own record, while you choose the number.** As you drag the confidence slider the
+  form says what decisions at that level have actually come in at — and typing a category
+  adds the base rate for decisions like this one. Every other surface reports on decisions
+  already made; this is the only one that can change one.
+- **A premortem above 85%.** It's a year from now and this went wrong: what happened? The
+  entry isn't accepted until that's written. It fires on a **random half** of qualifying
+  decisions, so the app can find out whether its own intervention helps rather than
+  assuming it — and reports the comparison, including when the answer is "not yet".
 - **Log a decision** with your reasoning, a confidence percentage, when you expect to know,
   and — required — what would make it wrong. That last one is frozen at creation, because
   a criterion you write after the outcome is a criterion you write in your own favour.
@@ -202,7 +210,7 @@ npm run analyze
 npm test
 ```
 
-196 tests. The calibration maths (bucket boundaries, Wilson intervals, Brier score, the ECE
+209 tests. The calibration maths (bucket boundaries, Wilson intervals, Brier score, the ECE
 cancellation case, empty-journal paths), form validation including the UTC date bug and
 impossible dates like `2026-02-31`, and the model-response parsing contract — that last one
 runs without an API key, since malformed output is the failure most likely to reach a user.
@@ -252,6 +260,12 @@ into the slow decisions that actually matter.
 - **The synthetic recall values are deliberately weak.** Like the rest of the seed they are
   invented, so they were built to produce an inconclusive result rather than a dramatic
   one. Planting an effect and letting the app announce it would demonstrate nothing.
+- **The experiment is on one person.** The premortem trial is randomised, which removes
+  the confounding a before-and-after comparison would carry, but n is however many
+  high-confidence decisions you log. Expect it to say "too early" for a long time.
+- **The gate can be dodged.** The assignment travels with the form, so a determined user
+  could bypass it — which only means they have opted out of their own experiment. It is
+  enforced server-side against everything short of that.
 - **Local inference is weaker.** The privacy-preserving path is also the less capable
   one. The app is honest about which produced a given read rather than pretending the
   choice is free.
