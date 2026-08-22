@@ -10,6 +10,7 @@ import { ConsultationSplit } from "@/components/consultation-split";
 import { InsightsPanel } from "@/components/insights-panel";
 import { StarterList } from "@/components/starter-list";
 import { Card } from "@/components/card";
+import { CounterfactualSandbox, type SandboxEntry } from "@/components/counterfactual-sandbox";
 import { CategoryBreakdown } from "@/components/category-breakdown";
 import { HindsightCard } from "@/components/hindsight-card";
 import { getLatestAnalysis } from "@/lib/analysis";
@@ -200,53 +201,55 @@ export default async function DashboardPage() {
         cloudAction={runAnalysisOnCloud}
       />
 
-      <div className="grid gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3">
-          <Card
-            title="Confidence against reality"
-            caption="Fitted across the whole scale rather than bucket by bucket, so forty decisions say more than five separate estimates could. The shaded band is what the data actually pins down."
-          >
-            {band && fit ? (
-              <CalibrationFan
-                band={band}
-                buckets={buckets.map((b) => ({
-                  stated: b.statedConfidence,
-                  actual: b.actualAccuracy,
-                  count: b.count,
-                }))}
-                anchors={anchors}
-              />
-            ) : (
-              <CalibrationChart buckets={buckets} />
-            )}
-          </Card>
-        </div>
+      <Card
+        title="Bayesian Recalibration & Counterfactual Sandbox"
+        caption="Interactive decision laboratory. Adjust hypothetical confidence in real-time to simulate how deflating unearned certainty narrows the credible band and recovers your Brier score."
+      >
+        <CounterfactualSandbox
+          initialEntries={resolved.map((e) => ({
+            id: e.id,
+            decision: e.decision,
+            confidence: e.confidence,
+            consultedOthers: e.consultedOthers,
+            outcome: (e.outcome ?? "incorrect") as "correct" | "incorrect",
+            category: e.category,
+          }))}
+        />
+      </Card>
 
-        <div className="lg:col-span-2">
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card
+          title="Alone, or talked through"
+          caption="The same confidence means different things depending on whether anyone else saw your reasoning first."
+        >
+          <ConsultationSplit
+            groups={[
+              {
+                label: "Reasoned alone",
+                stated: averageConfidence(solo),
+                actual: accuracyFor(solo),
+                count: solo.length,
+                brier: brierScore(solo),
+              },
+              {
+                label: "Talked it through",
+                stated: averageConfidence(consulted),
+                actual: accuracyFor(consulted),
+                count: consulted.length,
+                brier: brierScore(consulted),
+              },
+            ]}
+          />
+        </Card>
+
+        {parts && (
           <Card
-            title="Alone, or talked through"
-            caption="The same confidence means different things depending on whether anyone else saw your reasoning first."
+            title="Honest, or useful"
+            caption="Being well calibrated and being worth listening to are different achievements, and the overall gap can't tell them apart."
           >
-            <ConsultationSplit
-              groups={[
-                {
-                  label: "Reasoned alone",
-                  stated: averageConfidence(solo),
-                  actual: accuracyFor(solo),
-                  count: solo.length,
-                  brier: brierScore(solo),
-                },
-                {
-                  label: "Talked it through",
-                  stated: averageConfidence(consulted),
-                  actual: accuracyFor(consulted),
-                  count: consulted.length,
-                  brier: brierScore(consulted),
-                },
-              ]}
-            />
+            <SharpnessCard parts={parts} auc={auc} verdict={verdict(parts, auc)} />
           </Card>
-        </div>
+        )}
       </div>
 
       {ledger && (
@@ -255,15 +258,6 @@ export default async function DashboardPage() {
           caption="Claims about how you reason, generated from your earlier decisions and then tested against the ones held back from them. Kept whether they held or not."
         >
           <HypothesisLedger ledger={ledger} />
-        </Card>
-      )}
-
-      {parts && (
-        <Card
-          title="Honest, or useful"
-          caption="Being well calibrated and being worth listening to are different achievements, and the overall gap can't tell them apart."
-        >
-          <SharpnessCard parts={parts} auc={auc} verdict={verdict(parts, auc)} />
         </Card>
       )}
 
