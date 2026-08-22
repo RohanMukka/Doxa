@@ -11,6 +11,7 @@ const valid = {
   falsifier: "I'm still there in a year and wish I'd left.",
   premortem: "",
   premortemAssigned: "",
+  resolver: "",
 };
 
 describe("parseLocalDate", () => {
@@ -179,5 +180,36 @@ describe("the premortem gate", () => {
   it("treats whitespace as no answer", () => {
     const r = validateNewEntry({ ...sure, premortemAssigned: "on", premortem: "   " });
     expect(r.ok).toBe(false);
+  });
+});
+
+describe("attaching an automatic check", () => {
+  it("accepts a well-formed one and stores it canonically", () => {
+    const r = validateNewEntry({
+      ...valid,
+      resolver: '{"kind":"github-pr-merged","owner":"acme","repo":"widget","number":7}',
+    });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(JSON.parse(r.value.resolver!).number).toBe(7);
+  });
+
+  it("treats no check as the normal case", () => {
+    const r = validateNewEntry(valid);
+    if (r.ok) expect(r.value.resolver).toBeNull();
+  });
+
+  it("rejects a malformed check now rather than months from now", () => {
+    // A resolver that turns out to be broken when it finally fires leaves the
+    // entry silently unresolvable, long after anyone remembers writing it.
+    expect(validateNewEntry({ ...valid, resolver: "{not json" }).ok).toBe(false);
+    expect(
+      validateNewEntry({ ...valid, resolver: '{"kind":"tarot","owner":"a"}' }).ok
+    ).toBe(false);
+    expect(
+      validateNewEntry({
+        ...valid,
+        resolver: '{"kind":"http-json","url":"nope","path":"a","op":"eq","value":1}',
+      }).ok
+    ).toBe(false);
   });
 });

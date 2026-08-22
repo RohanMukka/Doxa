@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import type { FormState } from "@/lib/actions";
 import { honestFor, referenceClassFor, type Priors } from "@/lib/priors";
 import { PREMORTEM_THRESHOLD } from "@/lib/validation";
+import { ResolverField } from "@/components/resolver-field";
 
 const FIELD =
   "rounded-xl border border-hairline bg-surface px-3.5 py-3 text-[14px] leading-relaxed transition-colors duration-200 placeholder:text-ink-muted focus:border-hairline-strong";
@@ -311,6 +312,8 @@ export function EntryForm({
           </span>
         </span>
       </label>
+
+      <ResolverField />
 
       <SaveButton />
     </form>

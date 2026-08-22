@@ -96,8 +96,12 @@ export function describeResolver(spec: ResolverSpec): string {
     case "github-issue-closed":
       return `${spec.owner}/${spec.repo}#${spec.number} is closed`;
     case "http-json": {
-      const op = { gte: "at least", lte: "at most", eq: "exactly", contains: "contains" }[spec.op];
-      return `${spec.path} at ${new URL(spec.url).hostname} is ${op} ${spec.value}`;
+      const host = new URL(spec.url).hostname;
+      if (spec.op === "contains") {
+        return `${spec.path} at ${host} contains "${spec.value}"`;
+      }
+      const op = { gte: "at least", lte: "at most", eq: "exactly" }[spec.op];
+      return `${spec.path} at ${host} is ${op} ${spec.value}`;
     }
   }
 }

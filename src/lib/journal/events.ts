@@ -42,6 +42,8 @@ export type EventPayloads = {
      * would load the arm they landed in with a year of un-intervened decisions.
      */
     premortemAssigned: boolean | null;
+    /** Executable criterion, canonical JSON. Null when only you can settle it. */
+    resolver: string | null;
   };
   /**
    * What the person believed they had said, committed to the log *before* the
@@ -63,6 +65,9 @@ export type EventPayloads = {
     outcome: "correct" | "incorrect";
     resolutionNote: string | null;
     adjudication: "self" | "external";
+    /** What a resolver saw, and where. Null when you graded it yourself. */
+    evidence: string | null;
+    evidenceSource: string | null;
   };
   /**
    * The stated confidence is sealed while a decision is open — seeing it invites

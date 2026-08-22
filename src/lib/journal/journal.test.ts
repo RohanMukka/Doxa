@@ -28,6 +28,7 @@ function made(entryId: string, overrides: Partial<JournalEvent<"DecisionMade">["
       falsifier: "I'm still there in a year and wish I'd left.",
       premortem: null,
       premortemAssigned: false,
+      resolver: null,
       ...overrides,
     },
   } satisfies JournalEvent<"DecisionMade">;
@@ -45,6 +46,8 @@ function resolved(
       outcome: "correct",
       resolutionNote: "Went fine.",
       adjudication: "self",
+      evidence: null,
+      evidenceSource: null,
       ...overrides,
     },
   } satisfies JournalEvent<"OutcomeRecorded">;
@@ -260,6 +263,7 @@ describe("checkProjection", () => {
     falsifier: "I'm still there in a year and wish I'd left.",
     premortem: null,
     premortemAssigned: false,
+    resolver: null,
     status: "resolved",
     outcome: "correct",
     resolutionNote: "Went fine.",
@@ -268,6 +272,8 @@ describe("checkProjection", () => {
     recallBlind: true,
     confidenceRevealedAt: null,
     adjudication: "self",
+    evidence: null,
+    evidenceSource: null,
   });
 
   it("passes when the table matches the replay", () => {

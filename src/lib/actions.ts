@@ -31,6 +31,7 @@ export async function createEntry(
     falsifier: formData.get("falsifier"),
     premortem: formData.get("premortem"),
     premortemAssigned: formData.get("premortemAssigned"),
+    resolver: formData.get("resolver"),
   });
 
   if (!result.ok) return { error: result.error };
@@ -52,6 +53,7 @@ export async function createEntry(
         falsifier: v.falsifier,
         premortem: v.premortem,
         premortemAssigned: v.premortemAssigned,
+        resolver: v.resolver,
       },
     },
   ]);
@@ -82,7 +84,13 @@ export async function resolveEntry(
     {
       type: "OutcomeRecorded",
       entryId: id,
-      payload: { outcome, resolutionNote, adjudication: "self" },
+      payload: {
+        outcome,
+        resolutionNote,
+        adjudication: "self",
+        evidence: null,
+        evidenceSource: null,
+      },
     },
   ]);
 

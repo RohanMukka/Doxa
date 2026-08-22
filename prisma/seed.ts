@@ -510,7 +510,10 @@ const bucketE: SeedEntry[] = [
 
 // A handful of still-open entries so the journal doesn't look purely
 // retrospective — these have no outcome yet.
-type OpenSeedEntry = Omit<SeedEntry, "outcome" | "resolutionNote">;
+type OpenSeedEntry = Omit<SeedEntry, "outcome" | "resolutionNote"> & {
+  /** Present only where the outcome is a fact something can go and check. */
+  resolver?: Record<string, unknown>;
+};
 
 const openEntries: OpenSeedEntry[] = [
   // Two of these are already past the date they said they'd know. That is
@@ -536,6 +539,29 @@ const openEntries: OpenSeedEntry[] = [
     consultedOthers: true,
     createdAt: "2026-06-20",
     resolutionDate: "2026-08-15",
+  },
+  // The one entry here whose outcome is a fact rather than a judgement, and so
+  // the only one something else can grade. That ratio is realistic: most of a
+  // decision journal is judgement, which is exactly why the handful that aren't
+  // are worth having as a check on the rest.
+  {
+    decision: "Hold off upgrading the side project — Prisma will still be on 6.x when I next look.",
+    reasoning:
+      "They've been shipping 6.x for months and a major usually trails a long deprecation window. Fairly confident, though I haven't checked their roadmap.",
+    confidence: 76,
+    category: "side-project",
+    consultedOthers: false,
+    createdAt: "2026-07-14",
+    // Already past, so `npm run resolve` settles it on a fresh clone and the
+    // dashboard has one outcome that nobody in this repository decided.
+    resolutionDate: "2026-08-18",
+    resolver: {
+      kind: "http-json",
+      url: "https://registry.npmjs.org/prisma",
+      path: "dist-tags.latest",
+      op: "contains",
+      value: "6.",
+    },
   },
   {
     decision: "Apply for the internal transfer to the data team without discussing it with my current manager yet.",
@@ -629,6 +655,10 @@ const FALSIFIERS: [string, string][] = [
     "Written updates stop landing within a month, or we quietly put the meeting back.",
   ],
   [
+    "Hold off upgrading the side project",
+    "Prisma has published a 7.x release as its latest by the time I look.",
+  ],
+  [
     "Apply for the internal transfer",
     "My manager hears about it from someone else before I tell them, or the transfer stalls because I skipped that conversation.",
   ],
@@ -714,6 +744,12 @@ async function main() {
         // with a year of decisions the intervention was never withheld from.
         premortem: null,
         premortemAssigned: null,
+        // Nothing in this journal is machine-settleable: they are judgements
+        // about a life, which is what most of a real journal looks like. The
+        // resolvers exist for the minority that aren't, not to pretend
+        // everything is.
+        resolver:
+          "resolver" in e && e.resolver ? JSON.stringify(e.resolver) : null,
       },
     });
 
@@ -745,6 +781,8 @@ async function main() {
         outcome: e.outcome,
         resolutionNote: e.resolutionNote,
         adjudication: "self",
+        evidence: null,
+        evidenceSource: null,
       },
     });
   }

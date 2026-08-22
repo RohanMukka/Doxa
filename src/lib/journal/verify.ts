@@ -89,6 +89,7 @@ const PROJECTED_FIELDS = [
   "falsifier",
   "premortem",
   "premortemAssigned",
+  "resolver",
   "status",
   "outcome",
   "resolutionNote",
@@ -97,6 +98,8 @@ const PROJECTED_FIELDS = [
   "recallBlind",
   "confidenceRevealedAt",
   "adjudication",
+  "evidence",
+  "evidenceSource",
 ] as const;
 
 /** Dates compare by instant; everything else by canonical form. */

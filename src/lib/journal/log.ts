@@ -123,6 +123,7 @@ async function loadEntryState(entryId: string, tx: Tx): Promise<EntryState | nul
     falsifier: row.falsifier,
     premortem: row.premortem,
     premortemAssigned: row.premortemAssigned,
+    resolver: row.resolver,
     status: row.status === "resolved" ? "resolved" : "open",
     outcome: row.outcome as EntryState["outcome"],
     resolutionNote: row.resolutionNote,
@@ -131,6 +132,8 @@ async function loadEntryState(entryId: string, tx: Tx): Promise<EntryState | nul
     recallBlind: row.recallBlind,
     confidenceRevealedAt: row.confidenceRevealedAt,
     adjudication: row.adjudication as EntryState["adjudication"],
+    evidence: row.evidence,
+    evidenceSource: row.evidenceSource,
   };
 }
 
@@ -146,6 +149,7 @@ async function writeProjection(state: EntryState, tx: Tx) {
     falsifier: state.falsifier,
     premortem: state.premortem,
     premortemAssigned: state.premortemAssigned,
+    resolver: state.resolver,
     status: state.status,
     outcome: state.outcome,
     resolutionNote: state.resolutionNote,
@@ -154,6 +158,8 @@ async function writeProjection(state: EntryState, tx: Tx) {
     recallBlind: state.recallBlind,
     confidenceRevealedAt: state.confidenceRevealedAt,
     adjudication: state.adjudication,
+    evidence: state.evidence,
+    evidenceSource: state.evidenceSource,
   };
   await tx.entry.upsert({
     where: { id: state.id },

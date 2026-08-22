@@ -21,6 +21,7 @@ export type EntryState = {
   falsifier: string | null;
   premortem: string | null;
   premortemAssigned: boolean | null;
+  resolver: string | null;
   status: "open" | "resolved";
   outcome: "correct" | "incorrect" | null;
   resolutionNote: string | null;
@@ -29,6 +30,8 @@ export type EntryState = {
   recallBlind: boolean | null;
   confidenceRevealedAt: Date | null;
   adjudication: "self" | "external" | null;
+  evidence: string | null;
+  evidenceSource: string | null;
 };
 
 export class ProjectionError extends Error {}
@@ -54,12 +57,15 @@ export function applyEvent(state: EntryState | null, event: JournalEvent): Entry
         falsifier: p.falsifier,
         premortem: p.premortem,
         premortemAssigned: p.premortemAssigned,
+        resolver: p.resolver,
         status: "open",
         outcome: null,
         resolutionNote: null,
         resolvedAt: null,
         recalledConfidence: null,
         recallBlind: null,
+        evidence: null,
+        evidenceSource: null,
         confidenceRevealedAt: null,
         adjudication: null,
       };
@@ -84,6 +90,8 @@ export function applyEvent(state: EntryState | null, event: JournalEvent): Entry
         resolutionNote: p.resolutionNote,
         resolvedAt: event.recordedAt,
         adjudication: p.adjudication,
+        evidence: p.evidence,
+        evidenceSource: p.evidenceSource,
       };
     }
 

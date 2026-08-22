@@ -4,6 +4,8 @@
  * input deserves it.
  */
 
+import { ResolverSpecSchema } from "@/lib/resolvers/spec";
+
 /**
  * Above this, being asked to argue the other side is worth the friction. Below
  * it the gate would fire constantly and stop being read.
@@ -22,6 +24,7 @@ export type NewEntryInput = {
   falsifier: string;
   premortem: string | null;
   premortemAssigned: boolean;
+  resolver: string | null;
 };
 
 /**
@@ -54,6 +57,7 @@ export function validateNewEntry(form: {
   falsifier: unknown;
   premortem: unknown;
   premortemAssigned: unknown;
+  resolver: unknown;
 }): Validated<NewEntryInput> {
   const decision = String(form.decision ?? "").trim();
   const reasoning = String(form.reasoning ?? "").trim();
@@ -61,6 +65,7 @@ export function validateNewEntry(form: {
   const premortem = String(form.premortem ?? "").trim();
   const premortemAssigned =
     form.premortemAssigned === "on" || form.premortemAssigned === true;
+  const rawResolver = String(form.resolver ?? "").trim();
   const rawConfidence = Number(form.confidence);
   const resolutionDate = parseLocalDate(String(form.resolutionDate ?? ""));
 
@@ -93,6 +98,24 @@ export function validateNewEntry(form: {
     };
   }
 
+  // A criterion something else will act on has to be well formed now, not at
+  // the moment it fires — a resolver that turns out to be malformed months
+  // later leaves the entry silently unresolvable.
+  let resolver: string | null = null;
+  if (rawResolver) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(rawResolver);
+    } catch {
+      return { ok: false, error: "That automatic check isn't valid JSON." };
+    }
+    const checked = ResolverSpecSchema.safeParse(parsed);
+    if (!checked.success) {
+      return { ok: false, error: "That automatic check isn't one this knows how to run." };
+    }
+    resolver = JSON.stringify(checked.data);
+  }
+
   return {
     ok: true,
     value: {
@@ -105,6 +128,7 @@ export function validateNewEntry(form: {
       falsifier,
       premortem: premortem || null,
       premortemAssigned,
+      resolver,
     },
   };
 }

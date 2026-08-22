@@ -46,6 +46,9 @@ model Entry {
   /// a before-and-after comparison would be confounded with everything else
   /// that changed about the person in the meantime.
   premortemAssigned Boolean?
+  /// The preregistered criterion in executable form, canonical JSON. Present
+  /// only for decisions whose outcome is a fact something can go and check.
+  resolver       String?
   // When the outcome was actually recorded, as distinct from resolutionDate,
   // which is when you expected to know. Staleness of an analysis is measured
   // against this.
@@ -67,6 +70,10 @@ model Entry {
   /// something outside them. Self-graded accuracy is the number most likely to
   /// flatter; keeping them separable is the only way to see the difference.
   adjudication   String?
+  /// What the resolver actually saw, and where. Recorded so an externally
+  /// graded outcome can be argued with rather than merely trusted.
+  evidence       String?
+  evidenceSource String?
 }
 
 /// Append-only, hash-chained log. This is the journal's source of truth: `Entry`

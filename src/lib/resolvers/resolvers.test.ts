@@ -191,5 +191,8 @@ describe("describeResolver", () => {
     expect(
       describeResolver({ kind: "http-json", url: "https://api.example.com/p", path: "data.amount", op: "gte", value: 100 })
     ).toBe("data.amount at api.example.com is at least 100");
+    expect(
+      describeResolver({ kind: "http-json", url: "https://api.example.com/p", path: "tag", op: "contains", value: "6." })
+    ).toBe(`tag at api.example.com contains "6."`);
   });
 });
