@@ -62,6 +62,16 @@ with someone carry almost the same stated confidence — and land very different
 
 ### Main Features
 
+- **Some outcomes are graded by something other than you.** Every statistic in a
+  decision journal rests on outcomes the journal's owner recorded about
+  themselves — the person marking the paper is the one who sat the exam. Where a
+  decision's outcome is a plain fact, it can carry a resolver: a pull request
+  merging, an issue closing, a number on a public API crossing a line.
+  `npm run resolve` settles those, and the dashboard compares self-graded
+  accuracy against externally graded accuracy. On a fresh clone this asks the npm
+  registry a real question and marks a seeded prediction wrong — the one outcome
+  in the repository that nobody involved decided.
+
 - **It intervenes, and then checks whether the intervention worked.** The entry
   form shows what your confidence at this level has actually been worth, as you
   choose it. Above 85% it makes you write the disconfirming case before the entry
@@ -152,7 +162,7 @@ with someone carry almost the same stated confidence — and land very different
 - **Pluggable inference** — a local model via **Ollama** by default, **Google Gemini**
   (`@google/genai`) only on explicit per-run consent. One response schema, translated
   per backend, re-validated with **Zod** server-side
-- **Vitest** — 209 tests over the calibration maths, the hash chain and its
+- **Vitest** — 243 tests over the calibration maths, the hash chain and its
   canonical encoding, every invalid state transition in the projection, form
   validation, and the model-response parsing contract
 - Statistics: Wilson score intervals, Brier score, expected calibration error, and a
@@ -180,8 +190,9 @@ Listing these because I'd rather name them than have them found.
   They exist so the calibration and analysis features can be judged without waiting a
   year. Every number on screen is computed honestly from that data — but it is
   illustrative data.
-- **Self-reported resolution.** You grade your own outcomes, which is exactly where
-  motivated reasoning lives. Adjudication is an unsolved problem here.
+- **Self-reported resolution, for most entries.** Resolvers settle the decisions
+  whose outcome is a fact, and preregistered criteria narrow the rest. But the
+  decisions that matter most are judgements, and those you still grade yourself.
 - **Small samples.** At journal-sized n, most findings are directional. The app now
   says so on screen rather than hiding it, which is the honest half of the fix; the
   other half is just more data.

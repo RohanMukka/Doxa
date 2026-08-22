@@ -63,6 +63,10 @@ of thing you can't tell yourself.
   whether the categories differ by more than chance would produce.
 - **Ready to resolve** — anything past the date you said you'd know is surfaced first,
   because an unresolved journal quietly stops measuring anything.
+- **Outcomes something else grades.** Where a decision's outcome is a fact rather than a
+  judgement, hand the criterion to a resolver — a GitHub pull request or issue, or any
+  public JSON endpoint — and `npm run resolve` settles it. Your self-graded accuracy
+  finally has something honest to be compared against.
 - **Export** — every entry plus the computed metrics, as JSON or CSV.
 - **`npm run verify`** — walks the chain and replays the log against the table, so a
   modified journal is detectable rather than merely discouraged.
@@ -210,7 +214,7 @@ npm run analyze
 npm test
 ```
 
-209 tests. The calibration maths (bucket boundaries, Wilson intervals, Brier score, the ECE
+243 tests. The calibration maths (bucket boundaries, Wilson intervals, Brier score, the ECE
 cancellation case, empty-journal paths), form validation including the UTC date bug and
 impossible dates like `2026-02-31`, and the model-response parsing contract — that last one
 runs without an API key, since malformed output is the failure most likely to reach a user.
@@ -233,6 +237,35 @@ npm run capture:analysis   # writes prisma/seed-analysis.json from your last run
 model output with no key required. It replays a run that actually happened — the insights
 are never hand-written, and if no run has been captured the panel stays empty and says so.
 
+## Who grades the outcome
+
+Every statistic here rests on outcomes you recorded about yourself, which is exactly where
+motivated reasoning lives: the person marking the paper is the one who sat the exam.
+Preregistered criteria narrow that. They don't close it — you still decide, afterwards,
+whether the criterion was met.
+
+So a decision whose outcome is a plain fact can carry a **resolver**: a pull request
+merging, an issue closing, or a number on any public JSON endpoint crossing a line.
+
+```bash
+npm run resolve   # settles every criterion whose date has passed
+```
+
+The seeded journal carries exactly one, because that ratio is realistic — most of a
+decision journal is judgement about a life. On a fresh clone this asks the npm registry
+whether Prisma is still on 6.x, finds 7.9.1, and marks the prediction wrong. It is the one
+outcome in this repository that nobody here decided.
+
+Anything short of a clear answer leaves the decision open. A resolver that graded something
+wrong because GitHub returned a 500 would be worse than no resolver at all — it would put a
+fabricated outcome into a journal whose entire value is that its outcomes are real. The
+generic fetch refuses loopback, private ranges and the cloud metadata address, because the
+machine it would otherwise reach is the one holding the journal.
+
+The comparison this produces is not clean and never will be: machine-settleable decisions
+are systematically plainer than the rest. A gap is not proof you flatter yourself. It is
+the first evidence about it that doesn't come from you.
+
 ## The cold-start problem
 
 Calibration needs *resolved* decisions, and the decisions worth journalling take months to
@@ -247,10 +280,9 @@ into the slow decisions that actually matter.
 
 ## Known limitations
 
-- **Self-reported resolution.** You grade your own outcomes, which is exactly where motivated
-  reasoning lives. Preregistered criteria narrow the gap — you're now grading against a
-  sentence you wrote in advance — but they don't close it. External adjudication is the
-  real fix and isn't built yet.
+- **Self-reported resolution, mostly.** Preregistered criteria narrow it and resolvers close
+  it outright — but only for the minority of decisions whose outcome is a fact. The ones that
+  matter most are judgements, and those you still grade yourself.
 - **Small samples.** At journal-sized n most findings are directional. The app says so on
   screen rather than hiding it, which is the honest half of the fix.
 - **The seal is against re-anchoring, not against you.** A sealed confidence is never sent
