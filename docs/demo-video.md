@@ -7,9 +7,6 @@ The cut is a real browser driving a real build: production Next.js server, the s
 edited in afterwards. On-screen captions carry the argument, so it also works with the
 sound off.
 
-There is a shorter [78-second cut in the editorial light theme](./video/doxa-demo-light.webm),
-silent, if the submission wants something under two minutes.
-
 ## Beat sheet
 
 Times are exact — `record.js` logs them as it records.

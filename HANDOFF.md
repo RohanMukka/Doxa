@@ -12,8 +12,11 @@ roughly **2.5 hours left**.
 **Do not start new architecture.** The project is feature-complete and in good
 shape. In the time remaining, the only things that move the score are:
 
-1. **A demo video.** `SUBMISSION.md` has a script. There is no video yet. On
-   Devpost this is the single highest-value missing artefact.
+1. ~~**A demo video.**~~ Done — `docs/doxa-demo.mp4`, 2:57, narrated. Generated
+   by `scripts/demo-video/`, which drives a real browser through the running
+   build, so it can be re-recorded after any change. The synthetic voice is the
+   one soft spot: `scripts/demo-video/narration.json` is the script with cue
+   times already proven to fit, if a human read replaces it.
 2. **Filling the `[…]` placeholders in `SUBMISSION.md`** — there is at least one
    prompt asking for a real personal story, which is the pitch's emotional hook.
 3. **A live/hosted demo URL**, if one can be stood up quickly. Judges will not
@@ -305,17 +308,14 @@ npm run build
 
 ## 8. Known issues and open items
 
-**Regression to decide on (introduced in the recent UI work):**
-`src/app/page.tsx` imports `CalibrationChart` and `CalibrationFan` but **renders
-neither** — the "Confidence against reality" card was replaced by the
-Counterfactual Sandbox. `buckets`, `band` and `anchors` are also computed and
-unused. Either the sandbox is intended to supersede the posterior-fan chart (in
-which case delete the dead imports and the unused computation), or the fan card
-should come back. **The fan was Phase 2's centerpiece visual and is currently not
-on the dashboard.** 10 ESLint warnings come mostly from this.
+**Resolved:** the dashboard rendered neither `CalibrationChart` nor
+`CalibrationFan` while computing `band` and `anchors` on every request. The fan
+is back, directly under the headline, on the reasoning that a claim about the
+whole curve should be shown the curve; the `CalibrationChart` import went with
+it, since the fan already draws the buckets it plotted. That cleared six of the
+eleven ESLint warnings. Five remain, all genuinely unused bindings.
 
 **Other open items:**
-- **No demo video.** Highest-value gap. Script is in `SUBMISSION.md`.
 - **`SUBMISSION.md` has unfilled `[…]` placeholders.**
 - **No hosted demo.** SQLite + local writes; would need Postgres/Turso.
 - **Ollama path is unexercised.** The selection logic is fully tested, but the
