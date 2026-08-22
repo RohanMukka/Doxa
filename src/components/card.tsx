@@ -10,10 +10,10 @@ export function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="h-full rounded-2xl border border-hairline bg-surface p-7 shadow-[var(--shadow-card)]">
+    <section className="relative h-full overflow-hidden rounded-2xl border border-hairline bg-surface/75 p-7 shadow-[var(--shadow-card)] backdrop-blur-md transition-all duration-200 hover:border-hairline-strong">
       <div className="flex items-start justify-between gap-5">
         <div>
-          <h2 className="text-[15px] font-medium tracking-tight">{title}</h2>
+          <h2 className="text-[15px] font-medium tracking-tight text-ink">{title}</h2>
           {caption && (
             <p className="mt-1.5 max-w-lg text-[13px] leading-relaxed text-ink-secondary">
               {caption}

@@ -45,11 +45,10 @@ function Metric({
   note: string;
 }) {
   return (
-    <div className="flex-1">
+    <div className="flex-1 rounded-xl border border-hairline bg-surface/60 p-4.5 backdrop-blur-sm transition-all duration-200 hover:border-hairline-strong">
       <dt className="eyebrow">{label}</dt>
-      {/* Numerals stay in the sans — a serif figure reads as decoration. */}
-      <dd className="mt-1.5 text-[26px] font-medium leading-none tracking-tight">{value}</dd>
-      <dd className="mt-2 text-[13px] leading-relaxed text-ink-secondary">{note}</dd>
+      <dd className="mt-2 font-mono text-[28px] font-medium leading-none tracking-tight text-ink tabular-nums">{value}</dd>
+      <dd className="mt-2 text-[12px] leading-relaxed text-ink-secondary">{note}</dd>
     </div>
   );
 }

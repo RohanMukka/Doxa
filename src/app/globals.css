@@ -9,6 +9,39 @@
   query and an explicit [data-theme] stamp so a toggle wins either way.
 */
 :root {
+  color-scheme: dark;
+
+  --page: #09090b;
+  --surface: #121217;
+  --surface-raised: #18181f;
+
+  --ink: #fafafa;
+  --ink-secondary: #a1a1aa;
+  --ink-muted: #71717a;
+
+  --hairline: rgba(255, 255, 255, 0.08);
+  --hairline-strong: rgba(255, 255, 255, 0.16);
+  --gridline: #27272a;
+  --axis: #3f3f46;
+
+  --accent: #38bdf8;
+  --accent-soft: rgba(56, 189, 248, 0.12);
+
+  --shade-said: #38bdf8;
+  --shade-right: #818cf8;
+
+  --good: #10b981;
+  --good-wash: rgba(16, 185, 129, 0.12);
+  --warning: #f59e0b;
+  --warning-wash: rgba(245, 158, 11, 0.12);
+  --critical: #f43f5e;
+  --critical-wash: rgba(244, 63, 94, 0.12);
+
+  --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 4px 20px -2px rgba(0, 0, 0, 0.6);
+  --shadow-raised: 0 0 0 1px rgba(255, 255, 255, 0.09), 0 8px 32px -4px rgba(0, 0, 0, 0.8);
+}
+
+:root[data-theme="light"] {
   color-scheme: light;
 
   --page: #f4f1ea;
@@ -24,83 +57,21 @@
   --gridline: #e3ded2;
   --axis: #c4bdae;
 
-  --accent: #2a78d6;
-  --accent-soft: rgba(42, 120, 214, 0.1);
+  --accent: #2563eb;
+  --accent-soft: rgba(37, 99, 235, 0.1);
 
-  --shade-said: #86b6ef;
-  --shade-right: #2a78d6;
+  --shade-said: #60a5fa;
+  --shade-right: #2563eb;
 
-  --good: #0ca30c;
-  --critical: #d03b3b;
-  --good-wash: rgba(12, 163, 12, 0.1);
-  --critical-wash: rgba(208, 59, 59, 0.09);
+  --good: #059669;
+  --good-wash: rgba(5, 150, 105, 0.1);
+  --warning: #d97706;
+  --warning-wash: rgba(217, 119, 6, 0.1);
+  --critical: #e11d48;
+  --critical-wash: rgba(225, 29, 72, 0.09);
 
   --shadow-card: 0 1px 2px rgba(20, 18, 15, 0.04), 0 4px 16px rgba(20, 18, 15, 0.03);
   --shadow-raised: 0 1px 2px rgba(20, 18, 15, 0.05), 0 8px 28px rgba(20, 18, 15, 0.06);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-
-    --page: #0d0c10;
-    --surface: #16151a;
-    --surface-raised: #1c1b21;
-
-    --ink: #f6f4ef;
-    --ink-secondary: #b5b1a8;
-    --ink-muted: #837d73;
-
-    --hairline: rgba(246, 244, 239, 0.1);
-    --hairline-strong: rgba(246, 244, 239, 0.18);
-    --gridline: #2a2830;
-    --axis: #3a3742;
-
-    --accent: #3987e5;
-    --accent-soft: rgba(57, 135, 229, 0.16);
-
-    --shade-said: #256abf;
-    --shade-right: #86b6ef;
-
-    --good: #0ca30c;
-    --critical: #d03b3b;
-    --good-wash: rgba(12, 163, 12, 0.16);
-    --critical-wash: rgba(208, 59, 59, 0.16);
-
-    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 20px rgba(0, 0, 0, 0.28);
-    --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 32px rgba(0, 0, 0, 0.36);
-  }
-}
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-
-  --page: #0d0c10;
-  --surface: #16151a;
-  --surface-raised: #1c1b21;
-
-  --ink: #f6f4ef;
-  --ink-secondary: #b5b1a8;
-  --ink-muted: #837d73;
-
-  --hairline: rgba(246, 244, 239, 0.1);
-  --hairline-strong: rgba(246, 244, 239, 0.18);
-  --gridline: #2a2830;
-  --axis: #3a3742;
-
-  --accent: #3987e5;
-  --accent-soft: rgba(57, 135, 229, 0.16);
-
-  --shade-said: #256abf;
-  --shade-right: #86b6ef;
-
-  --good: #0ca30c;
-  --critical: #d03b3b;
-  --good-wash: rgba(12, 163, 12, 0.16);
-  --critical-wash: rgba(208, 59, 59, 0.16);
-
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 20px rgba(0, 0, 0, 0.28);
-  --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 32px rgba(0, 0, 0, 0.36);
 }
 
 @theme inline {
@@ -114,6 +85,7 @@
   --color-hairline-strong: var(--hairline-strong);
   --color-accent: var(--accent);
   --color-good: var(--good);
+  --color-warning: var(--warning);
   --color-critical: var(--critical);
   --font-sans: var(--font-geist-sans);
   --font-serif: var(--font-newsreader);
@@ -167,60 +139,62 @@ input[type="range"].confidence {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 22px;
+  height: 24px;
   background: transparent;
   cursor: pointer;
 }
 
 input[type="range"].confidence::-webkit-slider-runnable-track {
-  height: 4px;
+  height: 5px;
   border-radius: 999px;
   background: linear-gradient(
     to right,
-    var(--accent) 0%,
-    var(--accent) var(--fill, 70%),
+    var(--slider-color, var(--accent)) 0%,
+    var(--slider-color, var(--accent)) var(--fill, 70%),
     var(--gridline) var(--fill, 70%),
     var(--gridline) 100%
   );
+  box-shadow: 0 0 12px var(--slider-glow, transparent);
 }
 
 input[type="range"].confidence::-moz-range-track {
-  height: 4px;
+  height: 5px;
   border-radius: 999px;
   background: var(--gridline);
 }
 
 input[type="range"].confidence::-moz-range-progress {
-  height: 4px;
+  height: 5px;
   border-radius: 999px;
-  background: var(--accent);
+  background: var(--slider-color, var(--accent));
 }
 
 input[type="range"].confidence::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  height: 18px;
-  width: 18px;
-  margin-top: -7px;
+  height: 20px;
+  width: 20px;
+  margin-top: -7.5px;
   border-radius: 50%;
-  background: var(--accent);
-  border: 3px solid var(--surface);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
-  transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1);
+  background: var(--slider-color, var(--accent));
+  border: 3px solid var(--surface-raised);
+  box-shadow: 0 2px 8px var(--slider-glow, rgba(0, 0, 0, 0.4));
+  transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 input[type="range"].confidence::-moz-range-thumb {
-  height: 18px;
-  width: 18px;
+  height: 20px;
+  width: 20px;
   border-radius: 50%;
-  background: var(--accent);
-  border: 3px solid var(--surface);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  background: var(--slider-color, var(--accent));
+  border: 3px solid var(--surface-raised);
+  box-shadow: 0 2px 8px var(--slider-glow, rgba(0, 0, 0, 0.4));
 }
 
 input[type="range"].confidence:hover::-webkit-slider-thumb,
 input[type="range"].confidence:active::-webkit-slider-thumb {
-  transform: scale(1.12);
+  transform: scale(1.18);
+  box-shadow: 0 0 16px var(--slider-glow, var(--accent));
 }
 
 /* Recharts paints its own SVG text; steer it to the ink tokens. */

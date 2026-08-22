@@ -224,31 +224,62 @@ export function EntryForm({
           <label htmlFor="confidence" className="text-[14px] font-medium">
             How confident are you?
           </label>
-          <span className="text-[13px] italic text-ink-muted">{describe(confidence)}</span>
+          <div className="flex items-center gap-2">
+            {confidence >= PREMORTEM_THRESHOLD && (
+              <span className="rounded-full border border-rose-500/25 bg-rose-500/10 px-2 py-0.5 text-[11px] font-medium tracking-wide text-rose-400">
+                Gate active (&ge;{PREMORTEM_THRESHOLD}%)
+              </span>
+            )}
+            <span className="text-[13px] italic text-ink-muted">{describe(confidence)}</span>
+          </div>
         </div>
 
-        <output
-          htmlFor="confidence"
-          className="text-[40px] font-medium leading-none tracking-tight"
-          style={{ color: "var(--accent)" }}
-        >
-          {confidence}%
-        </output>
+        {(() => {
+          const isExtreme = confidence >= 85;
+          const isHigh = confidence >= 75;
+          const sliderColor = isExtreme
+            ? "var(--critical)"
+            : isHigh
+              ? "var(--warning)"
+              : "var(--accent)";
+          const sliderGlow = isExtreme
+            ? "rgba(244, 63, 94, 0.4)"
+            : isHigh
+              ? "rgba(245, 158, 11, 0.3)"
+              : "rgba(56, 189, 248, 0.25)";
 
-        <input
-          type="range"
-          id="confidence"
-          name="confidence"
-          min={0}
-          max={100}
-          value={confidence}
-          onChange={(e) => setConfidence(Number(e.target.value))}
-          className="confidence mt-1 w-full"
-          // Drives the filled portion of the webkit track.
-          style={{ "--fill": `${confidence}%` } as React.CSSProperties}
-        />
+          return (
+            <>
+              <output
+                htmlFor="confidence"
+                className="font-mono text-[44px] font-medium leading-none tracking-tight tabular-nums transition-colors duration-200"
+                style={{ color: sliderColor }}
+              >
+                {confidence}%
+              </output>
 
-        <div className="flex justify-between text-[12px] text-ink-muted tabular-nums">
+              <input
+                type="range"
+                id="confidence"
+                name="confidence"
+                min={0}
+                max={100}
+                value={confidence}
+                onChange={(e) => setConfidence(Number(e.target.value))}
+                className="confidence mt-2 w-full transition-all duration-200"
+                style={
+                  {
+                    "--fill": `${confidence}%`,
+                    "--slider-color": sliderColor,
+                    "--slider-glow": sliderGlow,
+                  } as React.CSSProperties
+                }
+              />
+            </>
+          );
+        })()}
+
+        <div className="flex justify-between font-mono text-[11px] text-ink-muted tabular-nums">
           <span>0%</span>
           <span>50%</span>
           <span>100%</span>
