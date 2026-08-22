@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { InterrogationResult } from "@/lib/interrogation";
 
 export function SemanticHighlight({
@@ -69,9 +70,22 @@ export function InterrogationModal({
   const [defense, setDefense] = useState("");
   const [mode, setMode] = useState<"challenge" | "defense">("challenge");
 
-  if (!isOpen || !result) return null;
+  // The form sits inside a `.rise` container, whose animation leaves a
+  // transform behind — that makes it the containing block for `fixed`, so the
+  // modal would centre itself on the form rather than on the viewport. Portal
+  // it to the body so the overlay covers the screen it is meant to cover.
+  useEffect(() => {
+    if (!isOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [isOpen]);
 
-  return (
+  if (!isOpen || !result || typeof document === "undefined") return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-in fade-in duration-200">
       <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-rose-500/30 bg-zinc-950 p-7 shadow-[0_0_50px_rgba(244,63,94,0.15)] sm:p-9">
         {/* Header */}
@@ -210,6 +224,7 @@ export function InterrogationModal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
