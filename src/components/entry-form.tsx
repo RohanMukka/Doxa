@@ -1,11 +1,14 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import type { FormState } from "@/lib/actions";
+import { runInterrogation } from "@/lib/actions";
 import { honestFor, referenceClassFor, type Priors } from "@/lib/priors";
 import { PREMORTEM_THRESHOLD } from "@/lib/validation";
 import { ResolverField } from "@/components/resolver-field";
+import { InterrogationModal } from "@/components/interrogation-modal";
+import type { InterrogationResult } from "@/lib/interrogation";
 
 const FIELD =
   "rounded-xl border border-hairline bg-surface px-3.5 py-3 text-[14px] leading-relaxed transition-colors duration-200 placeholder:text-ink-muted focus:border-hairline-strong";
@@ -158,195 +161,295 @@ export function EntryForm({
   defaultDecision?: string;
   defaultCategory?: string;
 }) {
+  const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useActionState<FormState, FormData>(action, {});
+  const [decision, setDecision] = useState(defaultDecision);
+  const [reasoning, setReasoning] = useState("");
   const [confidence, setConfidence] = useState(70);
   const [category, setCategory] = useState(defaultCategory);
+  const [consultedOthers, setConsultedOthers] = useState(false);
+  const [premortemText, setPremortemText] = useState("");
+
+  const [interrogationResult, setInterrogationResult] = useState<InterrogationResult | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [interrogationPassed, setInterrogationPassed] = useState(false);
+  const [isLoadingInterrogation, setIsLoadingInterrogation] = useState(false);
+
+  const triggerInterrogation = async () => {
+    setIsLoadingInterrogation(true);
+    try {
+      const res = await runInterrogation({
+        decision,
+        reasoning,
+        confidence,
+        category,
+        consultedOthers,
+      });
+      setInterrogationResult(res);
+      setIsModalOpen(true);
+    } catch {
+      // Fallback
+    } finally {
+      setIsLoadingInterrogation(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    if (confidence >= PREMORTEM_THRESHOLD && !interrogationPassed) {
+      e.preventDefault();
+      await triggerInterrogation();
+    }
+  };
+
+  const handleAcceptDefense = (defense: string) => {
+    setPremortemText(defense);
+    setInterrogationPassed(true);
+    setIsModalOpen(false);
+    setTimeout(() => {
+      formRef.current?.requestSubmit();
+    }, 50);
+  };
+
+  const handleRecalibrate = (newConf: number) => {
+    setConfidence(newConf);
+    setInterrogationPassed(true);
+    setIsModalOpen(false);
+    setTimeout(() => {
+      formRef.current?.requestSubmit();
+    }, 50);
+  };
+
+  const handleProceedAnyway = () => {
+    setInterrogationPassed(true);
+    setIsModalOpen(false);
+    setTimeout(() => {
+      formRef.current?.requestSubmit();
+    }, 50);
+  };
 
   return (
-    <form action={formAction} className="mt-8 space-y-7">
-      {state.error && (
-        <p
-          className="rounded-xl px-4 py-3 text-[13px]"
-          style={{ background: "var(--critical-wash)", color: "var(--critical)" }}
-          role="alert"
-        >
-          {state.error}
-        </p>
-      )}
+    <>
+      <form ref={formRef} action={formAction} onSubmit={handleSubmit} className="mt-8 space-y-7">
+        {state.error && (
+          <p
+            className="rounded-xl px-4 py-3 text-[13px]"
+            style={{ background: "var(--critical-wash)", color: "var(--critical)" }}
+            role="alert"
+          >
+            {state.error}
+          </p>
+        )}
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="decision" className="text-[14px] font-medium">
-          What are you deciding?
-        </label>
-        <textarea
-          id="decision"
-          name="decision"
-          rows={2}
-          defaultValue={defaultDecision}
-          placeholder="Turn down the offer and stay in my current role."
-          className={FIELD}
-        />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <label htmlFor="reasoning" className="text-[14px] font-medium">
-          Why?
-        </label>
-        <textarea
-          id="reasoning"
-          name="reasoning"
-          rows={4}
-          placeholder="Your actual reasoning, in your own words. Don't tidy it up — the phrasing is what gets analysed later."
-          className={FIELD}
-        />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <label htmlFor="falsifier" className="text-[14px] font-medium">
-          What would make this wrong?
-        </label>
-        <p className="-mt-1 text-[12px] leading-relaxed text-ink-muted">
-          Written now, and frozen. If you decide afterwards what counted as being
-          wrong, you will decide it in your own favour — and the entry stops
-          measuring anything.
-        </p>
-        <textarea
-          id="falsifier"
-          name="falsifier"
-          rows={2}
-          placeholder="I'm still in this role in a year and wish I'd left."
-          className={FIELD}
-        />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <div className="flex items-baseline justify-between">
-          <label htmlFor="confidence" className="text-[14px] font-medium">
-            How confident are you?
+        <div className="flex flex-col gap-2">
+          <label htmlFor="decision" className="text-[14px] font-medium">
+            What are you deciding?
           </label>
-          <div className="flex items-center gap-2">
-            {confidence >= PREMORTEM_THRESHOLD && (
-              <span className="rounded-full border border-rose-500/25 bg-rose-500/10 px-2 py-0.5 text-[11px] font-medium tracking-wide text-rose-400">
-                Gate active (&ge;{PREMORTEM_THRESHOLD}%)
-              </span>
-            )}
-            <span className="text-[13px] italic text-ink-muted">{describe(confidence)}</span>
+          <textarea
+            id="decision"
+            name="decision"
+            rows={2}
+            value={decision}
+            onChange={(e) => setDecision(e.target.value)}
+            placeholder="Turn down the offer and stay in my current role."
+            className={FIELD}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="reasoning" className="text-[14px] font-medium">
+            Why?
+          </label>
+          <textarea
+            id="reasoning"
+            name="reasoning"
+            rows={4}
+            value={reasoning}
+            onChange={(e) => setReasoning(e.target.value)}
+            placeholder="Your actual reasoning, in your own words. Don't tidy it up — the phrasing is what gets analysed later."
+            className={FIELD}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="falsifier" className="text-[14px] font-medium">
+            What would make this wrong?
+          </label>
+          <p className="-mt-1 text-[12px] leading-relaxed text-ink-muted">
+            Written now, and frozen. If you decide afterwards what counted as being
+            wrong, you will decide it in your own favour — and the entry stops
+            measuring anything.
+          </p>
+          <textarea
+            id="falsifier"
+            name="falsifier"
+            rows={2}
+            placeholder="I'm still in this role in a year and wish I'd left."
+            className={FIELD}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <div className="flex items-baseline justify-between">
+            <label htmlFor="confidence" className="text-[14px] font-medium">
+              How confident are you?
+            </label>
+            <div className="flex items-center gap-2">
+              {confidence >= PREMORTEM_THRESHOLD && (
+                <span className="rounded-full border border-rose-500/25 bg-rose-500/10 px-2 py-0.5 text-[11px] font-medium tracking-wide text-rose-400">
+                  Gate active (&ge;{PREMORTEM_THRESHOLD}%)
+                </span>
+              )}
+              <span className="text-[13px] italic text-ink-muted">{describe(confidence)}</span>
+            </div>
+          </div>
+
+          {(() => {
+            const isExtreme = confidence >= 85;
+            const isHigh = confidence >= 75;
+            const sliderColor = isExtreme
+              ? "var(--critical)"
+              : isHigh
+                ? "var(--warning)"
+                : "var(--accent)";
+            const sliderGlow = isExtreme
+              ? "rgba(244, 63, 94, 0.4)"
+              : isHigh
+                ? "rgba(245, 158, 11, 0.3)"
+                : "rgba(56, 189, 248, 0.25)";
+
+            return (
+              <>
+                <output
+                  htmlFor="confidence"
+                  className="font-mono text-[44px] font-medium leading-none tracking-tight tabular-nums transition-colors duration-200"
+                  style={{ color: sliderColor }}
+                >
+                  {confidence}%
+                </output>
+
+                <input
+                  type="range"
+                  id="confidence"
+                  name="confidence"
+                  min={0}
+                  max={100}
+                  value={confidence}
+                  onChange={(e) => setConfidence(Number(e.target.value))}
+                  className="confidence mt-2 w-full transition-all duration-200"
+                  style={
+                    {
+                      "--fill": `${confidence}%`,
+                      "--slider-color": sliderColor,
+                      "--slider-glow": sliderGlow,
+                    } as React.CSSProperties
+                  }
+                />
+              </>
+            );
+          })()}
+
+          <div className="flex justify-between font-mono text-[11px] text-ink-muted tabular-nums">
+            <span>0%</span>
+            <span>50%</span>
+            <span>100%</span>
+          </div>
+
+          <Recalibration priors={priors} confidence={confidence} />
+        </div>
+
+        {/* Directly under the slider that triggers it */}
+        <input
+          type="hidden"
+          name="premortemAssigned"
+          value={priors.premortemAssigned ? "on" : ""}
+        />
+        {premortemText ? (
+          <div className="rounded-xl border border-rose-500/30 bg-rose-950/20 p-4">
+            <div className="text-[12px] font-semibold text-rose-400">Preregistered Adversarial Defense</div>
+            <p className="mt-1 text-[13px] italic text-ink">{premortemText}</p>
+            <input type="hidden" name="premortem" value={premortemText} />
+          </div>
+        ) : (
+          <Premortem show={priors.premortemAssigned && confidence >= PREMORTEM_THRESHOLD} />
+        )}
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="category" className="text-[14px] font-medium">
+              Category <span className="font-normal text-ink-muted">(optional)</span>
+            </label>
+            <input
+              type="text"
+              id="category"
+              name="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="career, money, health…"
+              className={FIELD}
+            />
+            <ReferenceClass priors={priors} category={category} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="resolutionDate" className="text-[14px] font-medium">
+              When will you know?
+            </label>
+            <input
+              type="date"
+              id="resolutionDate"
+              name="resolutionDate"
+              defaultValue={defaultResolutionDate}
+              className={FIELD}
+            />
           </div>
         </div>
 
-        {(() => {
-          const isExtreme = confidence >= 85;
-          const isHigh = confidence >= 75;
-          const sliderColor = isExtreme
-            ? "var(--critical)"
-            : isHigh
-              ? "var(--warning)"
-              : "var(--accent)";
-          const sliderGlow = isExtreme
-            ? "rgba(244, 63, 94, 0.4)"
-            : isHigh
-              ? "rgba(245, 158, 11, 0.3)"
-              : "rgba(56, 189, 248, 0.25)";
-
-          return (
-            <>
-              <output
-                htmlFor="confidence"
-                className="font-mono text-[44px] font-medium leading-none tracking-tight tabular-nums transition-colors duration-200"
-                style={{ color: sliderColor }}
-              >
-                {confidence}%
-              </output>
-
-              <input
-                type="range"
-                id="confidence"
-                name="confidence"
-                min={0}
-                max={100}
-                value={confidence}
-                onChange={(e) => setConfidence(Number(e.target.value))}
-                className="confidence mt-2 w-full transition-all duration-200"
-                style={
-                  {
-                    "--fill": `${confidence}%`,
-                    "--slider-color": sliderColor,
-                    "--slider-glow": sliderGlow,
-                  } as React.CSSProperties
-                }
-              />
-            </>
-          );
-        })()}
-
-        <div className="flex justify-between font-mono text-[11px] text-ink-muted tabular-nums">
-          <span>0%</span>
-          <span>50%</span>
-          <span>100%</span>
-        </div>
-
-        <Recalibration priors={priors} confidence={confidence} />
-      </div>
-
-      {/* Directly under the slider that triggers it: a gate that appears three
-          screens below the number it is reacting to reads as an unrelated
-          obstacle rather than a consequence. */}
-      <input
-        type="hidden"
-        name="premortemAssigned"
-        value={priors.premortemAssigned ? "on" : ""}
-      />
-      <Premortem show={priors.premortemAssigned && confidence >= PREMORTEM_THRESHOLD} />
-
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div className="flex flex-col gap-2">
-          <label htmlFor="category" className="text-[14px] font-medium">
-            Category <span className="font-normal text-ink-muted">(optional)</span>
-          </label>
+        <label className="flex items-start gap-3 rounded-xl border border-hairline bg-surface p-4 text-[14px] transition-colors duration-200 hover:border-hairline-strong">
           <input
-            type="text"
-            id="category"
-            name="category"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            placeholder="career, money, health…"
-            className={FIELD}
+            type="checkbox"
+            name="consultedOthers"
+            checked={consultedOthers}
+            onChange={(e) => setConsultedOthers(e.target.checked)}
+            className="mt-0.5"
+            style={{ accentColor: "var(--accent)" }}
           />
-          <ReferenceClass priors={priors} category={category} />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label htmlFor="resolutionDate" className="text-[14px] font-medium">
-            When will you know?
-          </label>
-          <input
-            type="date"
-            id="resolutionDate"
-            name="resolutionDate"
-            defaultValue={defaultResolutionDate}
-            className={FIELD}
-          />
-        </div>
-      </div>
-
-      <label className="flex items-start gap-3 rounded-xl border border-hairline bg-surface p-4 text-[14px] transition-colors duration-200 hover:border-hairline-strong">
-        <input
-          type="checkbox"
-          name="consultedOthers"
-          className="mt-0.5"
-          style={{ accentColor: "var(--accent)" }}
-        />
-        <span>
-          I talked this through with someone else first
-          <span className="mt-1 block text-[12px] leading-relaxed text-ink-muted">
-            Tracked separately, because whether anyone checked your reasoning tends to
-            predict how well the confidence holds up.
+          <span>
+            I talked this through with someone else first
+            <span className="mt-1 block text-[12px] leading-relaxed text-ink-muted">
+              Tracked separately, because whether anyone checked your reasoning tends to
+              predict how well the confidence holds up.
+            </span>
           </span>
-        </span>
-      </label>
+        </label>
 
-      <ResolverField />
+        <ResolverField />
 
-      <SaveButton />
-    </form>
+        <div className="flex flex-wrap items-center gap-3">
+          <SaveButton />
+
+          {confidence >= 75 && (
+            <button
+              type="button"
+              onClick={triggerInterrogation}
+              disabled={isLoadingInterrogation}
+              className="rounded-full border border-rose-500/30 bg-rose-500/10 px-4 py-2.5 text-[13px] font-medium text-rose-300 transition-all hover:bg-rose-500/20 active:scale-95 disabled:opacity-50"
+            >
+              {isLoadingInterrogation ? "Interrogating reasoning…" : "⚡ Red-Team My Reasoning"}
+            </button>
+          )}
+        </div>
+      </form>
+
+      <InterrogationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        result={interrogationResult}
+        decisionText={decision}
+        reasoningText={reasoning}
+        confidence={confidence}
+        onAcceptDefense={handleAcceptDefense}
+        onRecalibrate={handleRecalibrate}
+        onProceedAnyway={handleProceedAnyway}
+      />
+    </>
   );
 }

@@ -9,8 +9,19 @@ import { runHypotheses } from "@/lib/hypotheses/run";
 import { chooseBackend, survey } from "@/lib/inference";
 import { append } from "@/lib/journal/log";
 import { validateNewEntry, validateResolution } from "@/lib/validation";
+import { interrogateReasoning, type InterrogationResult } from "@/lib/interrogation";
 
 export type FormState = { error?: string };
+
+export async function runInterrogation(input: {
+  decision: string;
+  reasoning: string;
+  confidence: number;
+  category?: string;
+  consultedOthers?: boolean;
+}): Promise<InterrogationResult> {
+  return await interrogateReasoning(input);
+}
 
 function refresh() {
   revalidatePath("/journal");

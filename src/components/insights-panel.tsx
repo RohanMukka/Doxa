@@ -57,6 +57,28 @@ function whenRun(d: Date) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function HighlightQuotes({ text }: { text: string }) {
+  const parts = text.split(/('[^']+'|"[^"]+"|‘[^’]+’|“[^”]+”)/g);
+  return (
+    <span>
+      {parts.map((part, i) => {
+        if (/^['"‘“].+['"’”]$/.test(part)) {
+          return (
+            <mark
+              key={i}
+              className="rounded bg-amber-500/20 px-1.5 py-0.5 font-serif italic text-amber-200 border-b border-amber-500/40 shadow-sm"
+              title="Semantic phrase attribution from journal"
+            >
+              {part}
+            </mark>
+          );
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </span>
+  );
+}
+
 export function InsightsPanel({
   insights,
   entriesAnalyzed,
@@ -199,11 +221,13 @@ export function InsightsPanel({
                 <div className="min-w-0">
                   <p className="display text-[21px] leading-snug">{insight.headline}</p>
                   <p className="mt-3 text-[14px] leading-relaxed text-ink-secondary">
-                    {insight.evidence}
+                    <HighlightQuotes text={insight.evidence} />
                   </p>
                   <p className="mt-4 border-l-2 pl-4 text-[14px] leading-relaxed" style={{ borderColor: "var(--accent)" }}>
                     <span className="eyebrow block">Try instead</span>
-                    <span className="mt-1 block">{insight.tryInstead}</span>
+                    <span className="mt-1 block">
+                      <HighlightQuotes text={insight.tryInstead} />
+                    </span>
                   </p>
                 </div>
               </div>
