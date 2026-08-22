@@ -1,10 +1,9 @@
-﻿"use client";
+"use client";
 
 import { useState, useMemo } from "react";
 import {
   fitRecalibration,
   calibrationBand,
-  recalibrate,
   type BandPoint,
 } from "@/lib/recalibration";
 import {
@@ -92,6 +91,35 @@ export function CounterfactualSandbox({ initialEntries }: Props) {
       parts && baseline.parts ? parts.reliability - baseline.parts.reliability : 0;
     const gapDelta = gap !== null && baseline.gap !== null ? Math.abs(gap) - Math.abs(baseline.gap) : 0;
 
+    // Epistemic ROI: Quantify unearned confidence points avoided from failed bets
+    const totalErrorTaxReduced = initialEntries.reduce((acc, e) => {
+      let applies = false;
+      if (targetScope === "solo" && !e.consultedOthers) applies = true;
+      else if (targetScope === "all") applies = true;
+      else if (targetScope === "high" && e.confidence >= 80) applies = true;
+
+      if (!applies) return acc;
+      if (e.outcome === "incorrect" && adjustment < 0) {
+        return acc + Math.abs(adjustment);
+      }
+      return acc;
+    }, 0);
+
+    const catastrophicDeflated = initialEntries.filter(
+      (e) => {
+        let applies = false;
+        if (targetScope === "solo" && !e.consultedOthers) applies = true;
+        else if (targetScope === "all") applies = true;
+        else if (targetScope === "high" && e.confidence >= 80) applies = true;
+        return applies && e.confidence >= 80 && e.outcome === "incorrect";
+      }
+    ).length;
+
+    const relPctImprovement =
+      baseline.parts && parts && baseline.parts.reliability > 0.0001
+        ? Math.max(0, Math.round(((baseline.parts.reliability - parts.reliability) / baseline.parts.reliability) * 100))
+        : 0;
+
     return {
       fit,
       band,
@@ -105,6 +133,9 @@ export function CounterfactualSandbox({ initialEntries }: Props) {
       brierDelta,
       relDelta,
       gapDelta,
+      totalErrorTaxReduced,
+      catastrophicDeflated,
+      relPctImprovement,
     };
   }, [initialEntries, adjustment, targetScope, baseline]);
 
@@ -307,22 +338,78 @@ export function CounterfactualSandbox({ initialEntries }: Props) {
           </div>
         </div>
 
-        {/* Counterfactual Insight Statement */}
+        {/* Epistemic ROI & Cost of Overconfidence Panel */}
         {adjustment !== 0 && (
-          <div className="mt-4 rounded-xl border border-emerald-500/25 bg-emerald-950/20 p-3.5 text-[13px] leading-relaxed text-emerald-300">
-            {adjustment < 0 ? (
-              <>
-                <span className="font-semibold text-emerald-400">Recalibration Takeaway:</span> Deflating {targetScope === "solo" ? "un-consulted bets" : targetScope === "high" ? "high-confidence bets" : "decisions"} by{" "}
-                <span className="font-mono font-bold tabular-nums">{Math.abs(adjustment)}%</span> improves your overall Brier score to{" "}
-                <span className="font-mono font-bold tabular-nums">{simulated.brier?.toFixed(3)}</span>, pulling your stated confidence into tighter alignment with reality without reducing your discrimination power.
-              </>
-            ) : (
-              <>
-                <span className="font-semibold text-rose-400">Overconfidence Takeaway:</span> Adding an extra{" "}
-                <span className="font-mono font-bold tabular-nums">{adjustment}%</span> of unearned certainty inflates your calibration error by{" "}
-                <span className="font-mono font-bold tabular-nums">+{Math.abs(Math.round(simulated.gapDelta))} points</span>, penalizing your Brier score.
-              </>
-            )}
+          <div className="mt-4 space-y-3">
+            <div
+              className={`rounded-xl border p-4 text-[13px] leading-relaxed transition-all ${
+                adjustment < 0
+                  ? "border-emerald-500/30 bg-emerald-950/20 text-emerald-300"
+                  : "border-rose-500/30 bg-rose-950/20 text-rose-300"
+              }`}
+            >
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <span
+                  className={`font-mono text-[11px] font-bold uppercase tracking-wider ${
+                    adjustment < 0 ? "text-emerald-400" : "text-rose-400"
+                  }`}
+                >
+                  {adjustment < 0
+                    ? "⚡ Epistemic ROI // Overconfidence Avoidance"
+                    : "⚠️ Cognitive Inflation Penalty"}
+                </span>
+                {adjustment < 0 && simulated.relPctImprovement > 0 && (
+                  <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-emerald-300">
+                    +{simulated.relPctImprovement}% Reliability Gain
+                  </span>
+                )}
+              </div>
+
+              {adjustment < 0 ? (
+                <div>
+                  Deflating{" "}
+                  {targetScope === "solo"
+                    ? "un-consulted bets"
+                    : targetScope === "high"
+                      ? "high-confidence bets"
+                      : "decisions"}{" "}
+                  by{" "}
+                  <span className="font-mono font-bold tabular-nums text-white">
+                    {Math.abs(adjustment)}%
+                  </span>{" "}
+                  purges{" "}
+                  <span className="font-mono font-bold tabular-nums text-emerald-400">
+                    {simulated.totalErrorTaxReduced} points
+                  </span>{" "}
+                  of unearned certainty from failed outcomes. Your Brier score recovers to{" "}
+                  <span className="font-mono font-bold tabular-nums text-white">
+                    {simulated.brier?.toFixed(3)}
+                  </span>{" "}
+                  while preserving your discriminatory edge.
+                  {simulated.catastrophicDeflated > 0 && (
+                    <span className="mt-1.5 block font-mono text-[12px] text-emerald-400/90">
+                      ↳ {simulated.catastrophicDeflated} high-certainty (&ge;80%) failure blindspots neutralized.
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  Adding an extra{" "}
+                  <span className="font-mono font-bold tabular-nums text-white">
+                    {adjustment}%
+                  </span>{" "}
+                  of unearned certainty inflates your calibration error by{" "}
+                  <span className="font-mono font-bold tabular-nums text-rose-400">
+                    +{Math.abs(Math.round(simulated.gapDelta))} points
+                  </span>
+                  , degrading your Brier score to{" "}
+                  <span className="font-mono font-bold tabular-nums text-white">
+                    {simulated.brier?.toFixed(3)}
+                  </span>
+                  .
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

@@ -81,9 +81,9 @@ export function HypothesisLedger({ ledger }: { ledger: Ledger }) {
         <span className="tabular-nums text-ink">{ledger.holdoutN}</span> most recent — which
         they were never shown.{" "}
         {ledger.rows.some((r) => r.source === "model") ? (
-          <>The model proposed some of these; the rest were swept mechanically from your journal's own shape. Both are judged at the same bar. </>
+          <>The model proposed some of these; the rest were swept mechanically from your journal&apos;s own shape. Both are judged at the same bar. </>
         ) : (
-          <>They were swept mechanically from your journal's own shape — running the analysis adds the model's own proposals, judged at the same bar. </>
+          <>They were swept mechanically from your journal&apos;s own shape — running the analysis adds the model&apos;s own proposals, judged at the same bar. </>
         )}
         {ledger.held === 0 ? (
           <>

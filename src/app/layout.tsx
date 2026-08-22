@@ -91,6 +91,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 Auditor
               </Link>
               <Link
+                href="/pitch"
+                className="rounded-full px-3.5 py-1.5 text-[13px] text-ink-secondary transition-colors duration-200 hover:bg-hairline hover:text-ink"
+              >
+                Pitch Deck
+              </Link>
+              <Link
                 href="/journal/new"
                 className="ml-1 rounded-full border border-white/15 bg-ink px-4 py-1.5 text-[13px] font-medium text-page transition-all duration-200 hover:opacity-90 hover:shadow-sm"
               >

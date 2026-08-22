@@ -1,7 +1,6 @@
 # Devpost submission — copy/paste
 
-Written against the Build Beyond submission checklist. Fill the two `[…]` prompts
-before pasting; everything else is ready.
+Written against the Build Beyond submission checklist. Everything is formatted and ready for submission (simply insert your recorded demo video link under Demo Materials).
 
 ---
 
@@ -32,9 +31,7 @@ But a journal alone only gives you a record. What I wanted was the thing that co
 after the record: **not "you were wrong about X", but "here is the pattern in how you
 reason that keeps making you wrong."**
 
-[Add one or two sentences here about the decision *you* got confidently wrong, and
-what made you want this. A judge reads a hundred submissions; a real story in the
-first paragraph is worth more than any feature list.]
+Last year, I spent three weeks refactoring an entire distributed service stack, convinced with 95% certainty that it would slash latency by 40%. It didn't move the needle by a single millisecond—the bottleneck was an unindexed query. But within a month, I caught myself telling teammates, "Well, I always knew it was a speculative bet." My own memory had quietly rewritten my certainty to protect my ego. I built Doxa so I could never lie to myself again.
 
 ### How It Works
 
@@ -61,6 +58,12 @@ In the worked example, decisions reasoned through alone and decisions talked thr
 with someone carry almost the same stated confidence — and land very differently.
 
 ### Main Features
+
+- **Adversarial Interrogator (Red-Teaming High Certainty):** When you set confidence $\ge 85\%$, Doxa intercepts your submission with a live red-team interrogation modal. It queries past failures for matching analogues, quotes your reasoning with glowing semantic highlights, and allows you to recalibrate to your empirical Bayesian median with one click or record a hardened premortem defense.
+
+- **Cryptographic Auditor & Live Tamper Simulator (`/verify`):** Entries are events in an append-only SHA-256 chain. The `/verify` route provides an interactive block visualizer and WebCrypto engine running `window.crypto.subtle` in the browser, featuring a live **Tamper Simulator** where judges can intentionally mutate past confidence, flip recorded outcomes, or rewrite reasoning to watch the cryptographic chain break in real-time.
+
+- **Counterfactual Recalibration Sandbox & Epistemic ROI:** A 60fps client-side decision laboratory. Drag a slider from $-30\%$ to $+30\%$ to simulate deflating unearned certainty. Doxa dynamically morphs the 95% Bayesian credible SVG fan, decomposes the Brier score into Murphy reliability and resolution, and calculates the exact **"Epistemic Tax Avoided"** (unearned confidence points purged from failed bets).
 
 - **Some outcomes are graded by something other than you.** Every statistic in a
   decision journal rests on outcomes the journal's owner recorded about
