@@ -205,7 +205,6 @@ Listing these because I'd rather name them than have them found.
 ## Demo Materials
 
 **Demo video — https://www.youtube.com/watch?v=KWQg262BTrE** (2 min 57 s, narrated).
-A beat sheet and the voiceover script are in `docs/demo-video.md`.
 
 Screenshots in `docs/screenshots/`.
 
