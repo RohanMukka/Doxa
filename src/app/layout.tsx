@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Newsreader } from "next/font/google";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -33,7 +34,24 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const stored = localStorage.getItem('doxa-theme');
+                if (stored === 'light') {
+                  document.documentElement.setAttribute('data-theme', 'light');
+                } else {
+                  document.documentElement.setAttribute('data-theme', 'dark');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
       <body className="flex min-h-full flex-col">
         <header className="sticky top-0 z-20 border-b border-hairline bg-page/80 backdrop-blur-lg">
           <nav className="mx-auto flex max-w-5xl items-center justify-between gap-6 px-6 py-4">
@@ -53,7 +71,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 <span>SEALED // SHA-256</span>
               </Link>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <Link
                 href="/"
                 className="rounded-full px-3.5 py-1.5 text-[13px] text-ink-secondary transition-colors duration-200 hover:bg-hairline hover:text-ink"
@@ -74,10 +92,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </Link>
               <Link
                 href="/journal/new"
-                className="ml-2 rounded-full border border-white/15 bg-ink px-4 py-1.5 text-[13px] font-medium text-page transition-all duration-200 hover:opacity-90 hover:shadow-sm"
+                className="ml-1 rounded-full border border-white/15 bg-ink px-4 py-1.5 text-[13px] font-medium text-page transition-all duration-200 hover:opacity-90 hover:shadow-sm"
               >
                 New entry
               </Link>
+              <div className="ml-1 pl-1 border-l border-hairline">
+                <ThemeToggle />
+              </div>
             </div>
           </nav>
         </header>
