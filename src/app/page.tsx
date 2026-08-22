@@ -5,6 +5,7 @@ import { CalibrationFan } from "@/components/calibration-fan";
 import { SharpnessCard } from "@/components/sharpness-card";
 import { HypothesisLedger } from "@/components/hypothesis-ledger";
 import { ExperimentCard } from "@/components/experiment-card";
+import { AdjudicationCard } from "@/components/adjudication-card";
 import { ConsultationSplit } from "@/components/consultation-split";
 import { InsightsPanel } from "@/components/insights-panel";
 import { StarterList } from "@/components/starter-list";
@@ -30,6 +31,7 @@ import { decomposeBrier, discriminationInterval, verdict } from "@/lib/discrimin
 import { poolCategories, worstCategory } from "@/lib/pooling";
 import { latestLedger } from "@/lib/hypotheses/run";
 import { premortemExperiment } from "@/lib/experiment";
+import { adjudicationSplit } from "@/lib/adjudication";
 
 export const dynamic = "force-dynamic";
 
@@ -87,6 +89,10 @@ export default async function DashboardPage() {
   const pooled = poolCategories(resolved);
   const ledger = await latestLedger();
   const experiment = premortemExperiment(resolved);
+  const pendingChecks = await prisma.entry.count({
+    where: { status: "open", resolver: { not: null } },
+  });
+  const adjudication = adjudicationSplit(resolved, pendingChecks);
 
   if (resolved.length === 0) {
     return (
@@ -281,6 +287,15 @@ export default async function DashboardPage() {
           caption="Miscalibration isn't evenly spread. This is the part you can act on — a weak domain is a different instruction from being weak generally."
         >
           <CategoryBreakdown result={pooled} worst={worstCategory(pooled)} />
+        </Card>
+      )}
+
+      {(adjudication.external.n > 0 || adjudication.pendingChecks > 0) && (
+        <Card
+          title="Who graded it"
+          caption="Every other number here rests on outcomes you recorded about yourself — the person marking the paper is the one who sat the exam. These are the decisions something else settled."
+        >
+          <AdjudicationCard split={adjudication} />
         </Card>
       )}
 
