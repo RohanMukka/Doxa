@@ -1,6 +1,6 @@
 # Devpost submission — copy/paste
 
-Written against the Build Beyond submission checklist. Everything is formatted and ready for submission (the demo video is recorded — insert its hosted link under Demo Materials).
+Written against the Build Beyond submission checklist. Everything is formatted and ready for submission (the demo video is recorded and linked under Demo Materials).
 
 ---
 
@@ -204,8 +204,8 @@ Listing these because I'd rather name them than have them found.
 
 ## Demo Materials
 
-**Demo video — `docs/doxa-demo.mp4` (2 min 57 s, 1280×720, narrated).** [Upload it and put
-the link here.] A beat sheet and an optional voiceover script are in `docs/demo-video.md`.
+**Demo video — https://www.youtube.com/watch?v=KWQg262BTrE** (2 min 57 s, narrated).
+A beat sheet and the voiceover script are in `docs/demo-video.md`.
 
 Screenshots in `docs/screenshots/`.
 

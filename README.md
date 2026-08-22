@@ -10,13 +10,7 @@ The journal is an append-only, cryptographic **SHA-256 hash-chained log**, so *"
 
 ## 🎬 Demo
 
-**[Watch the 3-minute demo →](docs/doxa-demo.mp4)** — narrated. The dashboard and its
-calibration curve, the adversarial interrogation firing at 92% confidence, the
-counterfactual sandbox, and the hash chain breaking under a simulated tamper.
-
-The video is generated rather than hand-captured: [`scripts/demo-video/record.js`](scripts/demo-video)
-drives a real browser through the running production build and records the session, so
-nothing in it is mocked. Beat sheet and voiceover script: [`docs/demo-video.md`](docs/demo-video.md).
+https://www.youtube.com/watch?v=KWQg262BTrE
 
 ---
 
