@@ -9,6 +9,7 @@ import {
 } from "./events";
 import { ProjectionError, applyEvent, projectAll, projectEntry } from "./project";
 import { checkChain, checkProjection } from "./verify";
+import { verifyClientChain, clientEventHash } from "./client-verify";
 import type { StoredEvent } from "./log";
 
 const at = (iso: string) => new Date(iso);
@@ -299,5 +300,54 @@ describe("checkProjection", () => {
   it("catches an entry the log knows about but the table lost", () => {
     const report = checkProjection(log, []);
     expect(report.drift[0]).toMatchObject({ entryId: "e1", inTable: "missing" });
+  });
+});
+
+describe("verifyClientChain", () => {
+  const events = [
+    made("e1", { confidence: 80 }),
+    recalled("e1", 75),
+    resolved("e1"),
+  ];
+  const links = chain(events);
+  const clientLog = links.map((l, i) => ({
+    seq: i + 1,
+    prevHash: l.prevHash,
+    hash: l.hash,
+    event: {
+      type: l.event.type,
+      entryId: l.event.entryId,
+      recordedAt: l.event.recordedAt.toISOString(),
+      payload: l.event.payload as Record<string, unknown>,
+    },
+  }));
+
+  it("verifies an intact chain matches node hashes", async () => {
+    const res = await verifyClientChain(clientLog);
+    expect(res.ok).toBe(true);
+    expect(res.breaks).toHaveLength(0);
+    expect(res.brokenSeq).toBeNull();
+    expect(res.invalidSeqs.size).toBe(0);
+  });
+
+  it("detects a tampered payload in sequence #1 and cascades invalidation to subsequent blocks", async () => {
+    const tampered = [
+      {
+        ...clientLog[0],
+        event: {
+          ...clientLog[0].event,
+          payload: { ...clientLog[0].event.payload, confidence: 99 },
+        },
+      },
+      ...clientLog.slice(1),
+    ];
+
+    const res = await verifyClientChain(tampered);
+    expect(res.ok).toBe(false);
+    expect(res.brokenSeq).toBe(1);
+    expect(res.invalidSeqs.has(1)).toBe(true);
+    expect(res.invalidSeqs.has(2)).toBe(true);
+    expect(res.invalidSeqs.has(3)).toBe(true);
+    expect(res.breaks[0].reason).toBe("hash-mismatch");
   });
 });

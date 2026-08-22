@@ -44,10 +44,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                   where your confidence lies to you
                 </span>
               </Link>
-              <div className="hidden items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[11px] text-emerald-400 md:inline-flex">
+              <Link
+                href="/verify"
+                className="hidden items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[11px] text-emerald-400 transition-all hover:bg-emerald-500/20 hover:border-emerald-500/40 md:inline-flex"
+                title="Inspect cryptographic SHA-256 event chain"
+              >
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 <span>SEALED // SHA-256</span>
-              </div>
+              </Link>
             </div>
             <div className="flex items-center gap-1.5">
               <Link
@@ -61,6 +65,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 className="rounded-full px-3.5 py-1.5 text-[13px] text-ink-secondary transition-colors duration-200 hover:bg-hairline hover:text-ink"
               >
                 Journal
+              </Link>
+              <Link
+                href="/verify"
+                className="rounded-full px-3.5 py-1.5 text-[13px] text-ink-secondary transition-colors duration-200 hover:bg-hairline hover:text-ink"
+              >
+                Auditor
               </Link>
               <Link
                 href="/journal/new"

@@ -332,17 +332,24 @@ export default async function DashboardPage() {
         </span>
       </Link>
 
-      <p className="text-[12px] text-ink-muted">
-        Everything here lives in a local SQLite file, hash-chained so an edit to the past
-        is detectable.{" "}
-        <a href="/api/export?format=json" className="underline hover:text-ink">
-          Export JSON
-        </a>{" "}
-        ·{" "}
-        <a href="/api/export?format=csv" className="underline hover:text-ink">
-          Export CSV
-        </a>
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-4 text-[12px] text-ink-muted">
+        <p>
+          Everything here lives in a local SQLite file, hash-chained so an edit to the past
+          is detectable.{" "}
+          <Link href="/verify" className="font-mono text-emerald-400 underline hover:text-emerald-300">
+            Open Cryptographic Auditor
+          </Link>
+        </p>
+        <div className="flex items-center gap-3">
+          <a href="/api/export?format=json" className="underline hover:text-ink">
+            Export JSON
+          </a>
+          <span>·</span>
+          <a href="/api/export?format=csv" className="underline hover:text-ink">
+            Export CSV
+          </a>
+        </div>
+      </div>
     </div>
   );
 }
