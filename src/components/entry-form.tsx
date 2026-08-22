@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import type { FormState } from "@/lib/actions";
 import { honestFor, referenceClassFor, type Priors } from "@/lib/priors";
+import { PREMORTEM_THRESHOLD } from "@/lib/validation";
 
 const FIELD =
   "rounded-xl border border-hairline bg-surface px-3.5 py-3 text-[14px] leading-relaxed transition-colors duration-200 placeholder:text-ink-muted focus:border-hairline-strong";
@@ -87,6 +88,46 @@ function ReferenceClass({ priors, category }: { priors: Priors; category: string
       decisions. You averaged <span className="tabular-nums">{match.stated}%</span> confident
       and came in around <span className="tabular-nums">{match.pooled}%</span>.
     </p>
+  );
+}
+
+/**
+ * Argue the other side before the entry is accepted.
+ *
+ * Only above the confidence threshold, and only on the half of those decisions
+ * the coin flip assigned — so the app can find out whether this helps rather
+ * than assuming it. That means half the time you will be sure and not asked,
+ * which is the cost of being able to answer the question at all.
+ */
+function Premortem({ show }: { show: boolean }) {
+  if (!show) return null;
+
+  return (
+    <div
+      className="rounded-xl border p-4"
+      style={{ borderColor: "var(--critical)", background: "var(--critical-wash)" }}
+    >
+      <label htmlFor="premortem" className="text-[14px] font-medium">
+        It&rsquo;s a year from now and this was wrong. What happened?
+      </label>
+      <p className="mt-1.5 text-[12px] leading-relaxed text-ink-secondary">
+        You said {PREMORTEM_THRESHOLD}% or more. Write the story where it goes badly
+        before this is saved — at this confidence it is the part you are least likely to
+        have done unprompted.
+      </p>
+      <textarea
+        id="premortem"
+        name="premortem"
+        rows={3}
+        placeholder="The thing I assumed would hold didn't, because…"
+        className={`${FIELD} mt-3 w-full bg-surface-raised`}
+      />
+      <p className="mt-2 text-[11px] leading-relaxed text-ink-muted">
+        This fires on a random half of your high-confidence decisions. The other half are
+        the comparison — without them there would be no way to tell whether being asked
+        this changes anything.
+      </p>
+    </div>
   );
 }
 
@@ -214,6 +255,16 @@ export function EntryForm({
 
         <Recalibration priors={priors} confidence={confidence} />
       </div>
+
+      {/* Directly under the slider that triggers it: a gate that appears three
+          screens below the number it is reacting to reads as an unrelated
+          obstacle rather than a consequence. */}
+      <input
+        type="hidden"
+        name="premortemAssigned"
+        value={priors.premortemAssigned ? "on" : ""}
+      />
+      <Premortem show={priors.premortemAssigned && confidence >= PREMORTEM_THRESHOLD} />
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="flex flex-col gap-2">

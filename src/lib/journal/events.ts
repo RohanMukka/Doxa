@@ -31,6 +31,13 @@ export type EventPayloads = {
     /** ISO 8601. Dates never cross this boundary as `Date`s — see `canonicalize`. */
     resolutionDate: string;
     falsifier: string | null;
+    /** The disconfirming case, when the gate asked for one. */
+    premortem: string | null;
+    /**
+     * Whether the premortem gate fired. Recorded even when it didn't, because
+     * the decisions it skipped are the control group.
+     */
+    premortemAssigned: boolean;
   };
   /**
    * What the person believed they had said, committed to the log *before* the

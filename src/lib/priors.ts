@@ -23,6 +23,14 @@ export type ReferenceClass = {
 };
 
 export type Priors = {
+  /**
+   * Whether the premortem gate fires for this entry, decided by a coin flip
+   * before you start writing. Randomised rather than always-on so the app can
+   * eventually tell whether the intervention does anything: a before-and-after
+   * comparison would be confounded with everything else that changed about you
+   * in the meantime.
+   */
+  premortemAssigned: boolean;
   /** Enough resolved decisions for any of this to mean anything. */
   ready: boolean;
   resolvedCount: number;

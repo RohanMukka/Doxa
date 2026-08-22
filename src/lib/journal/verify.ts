@@ -87,6 +87,8 @@ const PROJECTED_FIELDS = [
   "createdAt",
   "resolutionDate",
   "falsifier",
+  "premortem",
+  "premortemAssigned",
   "status",
   "outcome",
   "resolutionNote",

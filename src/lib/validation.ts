@@ -4,6 +4,12 @@
  * input deserves it.
  */
 
+/**
+ * Above this, being asked to argue the other side is worth the friction. Below
+ * it the gate would fire constantly and stop being read.
+ */
+export const PREMORTEM_THRESHOLD = 85;
+
 export type Validated<T> = { ok: true; value: T } | { ok: false; error: string };
 
 export type NewEntryInput = {
@@ -14,6 +20,8 @@ export type NewEntryInput = {
   consultedOthers: boolean;
   resolutionDate: Date;
   falsifier: string;
+  premortem: string | null;
+  premortemAssigned: boolean;
 };
 
 /**
@@ -44,10 +52,15 @@ export function validateNewEntry(form: {
   consultedOthers: unknown;
   resolutionDate: unknown;
   falsifier: unknown;
+  premortem: unknown;
+  premortemAssigned: unknown;
 }): Validated<NewEntryInput> {
   const decision = String(form.decision ?? "").trim();
   const reasoning = String(form.reasoning ?? "").trim();
   const falsifier = String(form.falsifier ?? "").trim();
+  const premortem = String(form.premortem ?? "").trim();
+  const premortemAssigned =
+    form.premortemAssigned === "on" || form.premortemAssigned === true;
   const rawConfidence = Number(form.confidence);
   const resolutionDate = parseLocalDate(String(form.resolutionDate ?? ""));
 
@@ -68,17 +81,30 @@ export function validateNewEntry(form: {
   if (!resolutionDate) {
     return { ok: false, error: "Pick a date you'll know the outcome by." };
   }
+  // Enforced server-side as well as in the form: an intervention that can be
+  // skipped by disabling JavaScript isn't one, and its absence would silently
+  // contaminate the group it is being measured against.
+  const confidence = Math.min(100, Math.max(0, Math.round(rawConfidence)));
+  if (premortemAssigned && confidence >= PREMORTEM_THRESHOLD && !premortem) {
+    return {
+      ok: false,
+      error:
+        "Write the disconfirming case first. At this confidence it is the part you are least likely to have done on your own.",
+    };
+  }
 
   return {
     ok: true,
     value: {
       decision,
       reasoning,
-      confidence: Math.min(100, Math.max(0, Math.round(rawConfidence))),
+      confidence,
       category: String(form.category ?? "").trim() || null,
       consultedOthers: form.consultedOthers === "on" || form.consultedOthers === true,
       resolutionDate,
       falsifier,
+      premortem: premortem || null,
+      premortemAssigned,
     },
   };
 }

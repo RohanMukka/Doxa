@@ -19,6 +19,8 @@ export type EntryState = {
   createdAt: Date;
   resolutionDate: Date;
   falsifier: string | null;
+  premortem: string | null;
+  premortemAssigned: boolean | null;
   status: "open" | "resolved";
   outcome: "correct" | "incorrect" | null;
   resolutionNote: string | null;
@@ -50,6 +52,8 @@ export function applyEvent(state: EntryState | null, event: JournalEvent): Entry
         createdAt: event.recordedAt,
         resolutionDate: new Date(p.resolutionDate),
         falsifier: p.falsifier,
+        premortem: p.premortem,
+        premortemAssigned: p.premortemAssigned,
         status: "open",
         outcome: null,
         resolutionNote: null,

@@ -37,6 +37,15 @@ model Entry {
   /// graded against a memory that the outcome has already edited. Nullable only
   /// because entries written before preregistration existed have no answer.
   falsifier      String?
+  /// The disconfirming case, written before the entry was accepted: assume this
+  /// went wrong, what happened? Only asked above a confidence threshold, and
+  /// only on the half of those decisions the gate was assigned to.
+  premortem      String?
+  /// Whether the premortem gate fired for this decision. Randomised, so the
+  /// app can eventually tell whether its own intervention does anything —
+  /// a before-and-after comparison would be confounded with everything else
+  /// that changed about the person in the meantime.
+  premortemAssigned Boolean?
   // When the outcome was actually recorded, as distinct from resolutionDate,
   // which is when you expected to know. Staleness of an analysis is measured
   // against this.

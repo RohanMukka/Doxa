@@ -29,6 +29,8 @@ export async function createEntry(
     consultedOthers: formData.get("consultedOthers"),
     resolutionDate: formData.get("resolutionDate"),
     falsifier: formData.get("falsifier"),
+    premortem: formData.get("premortem"),
+    premortemAssigned: formData.get("premortemAssigned"),
   });
 
   if (!result.ok) return { error: result.error };
@@ -48,6 +50,8 @@ export async function createEntry(
         consultedOthers: v.consultedOthers,
         resolutionDate: v.resolutionDate.toISOString(),
         falsifier: v.falsifier,
+        premortem: v.premortem,
+        premortemAssigned: v.premortemAssigned,
       },
     },
   ]);

@@ -9,6 +9,8 @@ const valid = {
   consultedOthers: "on",
   resolutionDate: "2026-12-01",
   falsifier: "I'm still there in a year and wish I'd left.",
+  premortem: "",
+  premortemAssigned: "",
 };
 
 describe("parseLocalDate", () => {
@@ -122,5 +124,60 @@ describe("validateResolution", () => {
   it("treats an empty note as absent", () => {
     const r = validateResolution({ id: "abc", outcome: "incorrect", resolutionNote: "  ", recalledConfidence: null });
     if (r.ok) expect(r.value.resolutionNote).toBeNull();
+  });
+});
+
+describe("the premortem gate", () => {
+  const sure = { ...valid, confidence: "92" };
+
+  it("demands the disconfirming case when assigned above the threshold", () => {
+    const r = validateNewEntry({ ...sure, premortemAssigned: "on", premortem: "" });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toMatch(/disconfirming case/i);
+  });
+
+  it("accepts the entry once it's written", () => {
+    const r = validateNewEntry({
+      ...sure,
+      premortemAssigned: "on",
+      premortem: "The team I was counting on left.",
+    });
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.value.premortem).toBe("The team I was counting on left.");
+      expect(r.value.premortemAssigned).toBe(true);
+    }
+  });
+
+  it("stays out of the way below the threshold", () => {
+    const r = validateNewEntry({
+      ...valid,
+      confidence: "70",
+      premortemAssigned: "on",
+      premortem: "",
+    });
+    expect(r.ok).toBe(true);
+  });
+
+  it("stays out of the way for the unassigned half", () => {
+    // These are the control group, and the whole reason a difference could be
+    // attributed to the intervention rather than to the passage of time.
+    const r = validateNewEntry({ ...sure, premortemAssigned: "", premortem: "" });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.value.premortemAssigned).toBe(false);
+  });
+
+  it("records the assignment either way, since the skipped half is the comparison", () => {
+    const on = validateNewEntry({ ...sure, premortemAssigned: "on", premortem: "x" });
+    const off = validateNewEntry({ ...sure, premortemAssigned: "", premortem: "" });
+    if (on.ok && off.ok) {
+      expect(on.value.premortemAssigned).toBe(true);
+      expect(off.value.premortemAssigned).toBe(false);
+    }
+  });
+
+  it("treats whitespace as no answer", () => {
+    const r = validateNewEntry({ ...sure, premortemAssigned: "on", premortem: "   " });
+    expect(r.ok).toBe(false);
   });
 });

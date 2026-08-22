@@ -4,6 +4,7 @@ import { CalibrationChart } from "@/components/calibration-chart";
 import { CalibrationFan } from "@/components/calibration-fan";
 import { SharpnessCard } from "@/components/sharpness-card";
 import { HypothesisLedger } from "@/components/hypothesis-ledger";
+import { ExperimentCard } from "@/components/experiment-card";
 import { ConsultationSplit } from "@/components/consultation-split";
 import { InsightsPanel } from "@/components/insights-panel";
 import { StarterList } from "@/components/starter-list";
@@ -28,6 +29,7 @@ import { calibrationBand, fitRecalibration, recalibrate } from "@/lib/recalibrat
 import { decomposeBrier, discriminationInterval, verdict } from "@/lib/discrimination";
 import { poolCategories, worstCategory } from "@/lib/pooling";
 import { latestLedger } from "@/lib/hypotheses/run";
+import { premortemExperiment } from "@/lib/experiment";
 
 export const dynamic = "force-dynamic";
 
@@ -84,6 +86,7 @@ export default async function DashboardPage() {
   const auc = discriminationInterval(resolved);
   const pooled = poolCategories(resolved);
   const ledger = await latestLedger();
+  const experiment = premortemExperiment(resolved);
 
   if (resolved.length === 0) {
     return (
@@ -280,6 +283,13 @@ export default async function DashboardPage() {
           <CategoryBreakdown result={pooled} worst={worstCategory(pooled)} />
         </Card>
       )}
+
+      <Card
+        title="Does the premortem help?"
+        caption="Doxa now interrupts you when you're very sure. Whether that interruption does anything is a claim like any other, so it fires at random and gets tested."
+      >
+        <ExperimentCard result={experiment} />
+      </Card>
 
       <Link
         href="/journal"

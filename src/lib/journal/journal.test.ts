@@ -26,6 +26,8 @@ function made(entryId: string, overrides: Partial<JournalEvent<"DecisionMade">["
       consultedOthers: false,
       resolutionDate: "2026-06-01T00:00:00.000Z",
       falsifier: "I'm still there in a year and wish I'd left.",
+      premortem: null,
+      premortemAssigned: false,
       ...overrides,
     },
   } satisfies JournalEvent<"DecisionMade">;
@@ -256,6 +258,8 @@ describe("checkProjection", () => {
     createdAt: at("2026-01-01T00:00:00.000Z"),
     resolutionDate: at("2026-06-01T00:00:00.000Z"),
     falsifier: "I'm still there in a year and wish I'd left.",
+    premortem: null,
+    premortemAssigned: false,
     status: "resolved",
     outcome: "correct",
     resolutionNote: "Went fine.",

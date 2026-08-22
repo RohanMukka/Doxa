@@ -10,11 +10,25 @@ import { MIN_FOR_PRIORS, type Priors } from "@/lib/priors";
  * Kept apart from the types and lookups so the entry form, which is a client
  * component, can import those without Prisma following it into the browser.
  */
+/**
+ * A coin flip, overridable for tests and screenshots. There is deliberately no
+ * user-facing setting: an intervention you can turn off when you don't fancy it
+ * is one that never fires when it would have mattered.
+ */
+function assignPremortem(): boolean {
+  const forced = process.env.DOXA_PREMORTEM;
+  if (forced === "always") return true;
+  if (forced === "never") return false;
+  return Math.random() < 0.5;
+}
+
 export async function priorsForEntry(): Promise<Priors> {
   const resolved = await prisma.entry.findMany({ where: { status: "resolved" } });
+  const premortemAssigned = assignPremortem();
 
   if (resolved.length < MIN_FOR_PRIORS) {
     return {
+      premortemAssigned,
       ready: false,
       resolvedCount: resolved.length,
       curve: [],
@@ -29,6 +43,7 @@ export async function priorsForEntry(): Promise<Priors> {
   const actual = accuracyFor(resolved);
 
   return {
+    premortemAssigned,
     ready: Boolean(fit),
     resolvedCount: resolved.length,
     curve: fit
