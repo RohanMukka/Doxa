@@ -124,16 +124,5 @@ window.__d = (function () {
     return ns.scrollTo(Math.max(0, y), dur || 1600).then(() => true);
   };
 
-  ns.glow = function (text) {
-    const nodes = [...document.querySelectorAll('h2,h3,div,span,label,button')];
-    const hit = nodes.find((n) => n.textContent && n.textContent.trim().startsWith(text));
-    if (!hit) return false;
-    const box = hit.closest('div');
-    box.style.transition = 'box-shadow .6s ease';
-    box.style.boxShadow = '0 0 0 2px rgba(56,189,248,.55), 0 0 44px rgba(56,189,248,.28)';
-    setTimeout(() => { box.style.boxShadow = ''; }, 3400);
-    return true;
-  };
-
   return ns;
 })();

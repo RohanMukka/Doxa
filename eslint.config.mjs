@@ -5,6 +5,13 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  // The demo recorder is a plain CommonJS Node script, not app code — it runs
+  // outside the bundler and never sees the TypeScript config.
+  {
+    files: ["scripts/demo-video/**/*.js"],
+    languageOptions: { sourceType: "commonjs" },
+    rules: { "@typescript-eslint/no-require-imports": "off" },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

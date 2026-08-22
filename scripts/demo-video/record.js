@@ -14,6 +14,15 @@ const EXECUTABLE = process.env.CHROMIUM_PATH || (fs.existsSync(BUNDLED) ? BUNDLE
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// Recording starts when the page is created; every beat is logged against that
+// origin so a voiceover can be cut to the picture instead of guessed at.
+let ORIGIN = 0;
+const TIMELINE = [];
+function mark(label) {
+  if (!ORIGIN) return;
+  TIMELINE.push({ t: Number(((Date.now() - ORIGIN) / 1000).toFixed(2)), label });
+}
+
 const CARD = (kicker, title, body, foot) => `
   <div style="font-family:var(--font-geist-mono),ui-monospace,monospace;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#52525b;">${kicker}</div>
   <div style="margin-top:22px;font-family:var(--font-newsreader),Georgia,serif;font-size:64px;line-height:1.06;letter-spacing:-.02em;color:#fafafa;max-width:1050px;">${title}</div>
@@ -32,14 +41,18 @@ async function go(page, url) {
 }
 
 async function cap(page, main, sub) {
+  mark(main.replace(/<[^>]+>/g, ''));
   await page.evaluate(([m, s]) => window.__d.caption(m, s), [main, sub || '']);
 }
 const hideCap = (page) => page.evaluate(() => window.__d.hideCaption());
-const card = (page, html) => page.evaluate((h) => window.__d.showCard(h), html);
+const card = (page, html) => {
+  const title = /font-size:64px[^>]*>([^<]+)/.exec(html);
+  mark('CARD: ' + (title ? title[1] : '').slice(0, 40));
+  return page.evaluate((h) => window.__d.showCard(h), html);
+};
 const hideCard = (page) => page.evaluate(() => window.__d.hideCard());
 const scrollY = (page, y, d) => page.evaluate(([y, d]) => window.__d.scrollTo(y, d), [y, d]);
 const scrollText = (page, t, d, o) => page.evaluate(([t, d, o]) => window.__d.scrollToText(t, d, o), [t, d, o]);
-const glow = (page, t) => page.evaluate((t) => window.__d.glow(t), t);
 const capPos = (page, w) => page.evaluate((w) => window.__d.captionPos(w), w);
 
 // Bring an element comfortably into frame with an eased scroll, not a jump.
@@ -121,6 +134,7 @@ async function typeInto(page, locator, text, delay = 26) {
     colorScheme: 'dark',
   });
   const page = await context.newPage();
+  ORIGIN = Date.now();
 
   // ─────────────────────────────────────────── SCENE 0 · title
   await go(page, '/');
@@ -276,7 +290,9 @@ async function typeInto(page, locator, text, delay = 26) {
   ));
   await wait(6000);
 
+  mark('END');
   await context.close();
   await browser.close();
+  fs.writeFileSync(path.join(OUT, 'timeline.json'), JSON.stringify(TIMELINE, null, 2));
   console.log('Recorded to ' + OUT);
 })().catch((e) => { console.error(e); process.exit(1); });

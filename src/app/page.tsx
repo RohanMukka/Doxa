@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { CalibrationChart } from "@/components/calibration-chart";
 import { CalibrationFan } from "@/components/calibration-fan";
 import { SharpnessCard } from "@/components/sharpness-card";
 import { HypothesisLedger } from "@/components/hypothesis-ledger";
@@ -188,6 +187,23 @@ export default async function DashboardPage() {
           />
         </dl>
       </header>
+
+      {band && (
+        <Card
+          title="Confidence against reality"
+          caption="The headline above is a claim about the whole curve, so here is the curve. The band is one two-parameter model's uncertainty rather than five buckets with their own error bars — it borrows strength across the scale, and narrows where the journal actually has decisions."
+        >
+          <CalibrationFan
+            band={band}
+            buckets={buckets.map((bucket) => ({
+              stated: bucket.statedConfidence,
+              actual: bucket.actualAccuracy,
+              count: bucket.count,
+            }))}
+            anchors={anchors}
+          />
+        </Card>
+      )}
 
       <InsightsPanel
         insights={analysis?.insights ?? null}
